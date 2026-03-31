@@ -3,55 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | Multi-Cloud v2.2</title>
+    <title>Zonix | v2.3 Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
-        :root { --bg: #050507; --accent: #3b82f6; --glass: rgba(15, 17, 23, 0.8); }
+        :root { --bg: #050507; --accent: #3b82f6; --glass: rgba(15, 17, 23, 0.9); }
         body { background: var(--bg); color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; }
         .glass-panel { background: var(--glass); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); }
         
-        /* AUTH GATE */
-        #login-gate { position: fixed; inset: 0; z-index: 9999; background: #050507; display: flex; align-items: center; justify-content: center; }
-        .input-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono', monospace; }
-
-        /* SIDEBAR */
-        .sidebar { width: 260px; border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; }
+        /* MINIMIZABLE SIDEBAR */
+        .sidebar { width: 260px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; position: relative; z-index: 50; }
+        .sidebar.minimized { width: 80px; }
+        .sidebar.minimized .nav-text, .sidebar.minimized .profile-full { display: none; }
+        .sidebar.minimized .nav-link { justify-content: center; padding: 12px; margin: 4px 8px; }
+        
         .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; transition: 0.2s; cursor: pointer; margin: 4px 12px; font-size: 13px; }
         .nav-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
         
-        .storage-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; transition: 0.3s; }
-        .storage-card:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
-
+        .chart-container { height: 200px; position: relative; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="login-gate">
-        <div class="w-[380px] p-10 glass-panel rounded-[32px] text-center">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-extrabold mb-6 shadow-xl shadow-blue-600/20">Z</div>
-            <h2 class="text-xl font-extrabold text-white mb-6">Zonix Access Control</h2>
-            <input type="password" id="access-pass" class="input-box mb-4" placeholder="Enter Security Token">
-            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all">Unlock Terminal</button>
-            <p id="auth-error" class="text-red-500 text-[10px] mt-4 opacity-0 font-bold uppercase">Invalid Token</p>
-        </div>
-    </div>
+    <div id="app" class="flex h-full">
+        <aside id="sidebar" class="sidebar flex flex-col">
+            <div class="p-6 flex items-center justify-between">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex-shrink-0 flex items-center justify-center text-white font-bold">Z</div>
+                    <span class="nav-text text-white font-black text-lg">ZONIX</span>
+                </div>
+                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white transition-colors">
+                    <i id="toggle-icon" class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
 
-    <div id="app" class="hidden flex h-full">
-        <aside class="sidebar flex flex-col">
-            <div class="p-8"><span class="text-white font-black text-xl">ZONIX<span class="text-blue-500">.</span></span></div>
-            <nav class="flex-1">
-                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree"></i> Unified Files</div>
-                <div onclick="tab('google')" id="nav-google" class="nav-link"><i class="fa-brands fa-google-drive"></i> Google Drive</div>
-                <div onclick="tab('degoo')" id="nav-degoo" class="nav-link"><i class="fa-solid fa-cloud"></i> Degoo Monitor</div>
+            <nav class="flex-1 mt-4">
+                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree"></i> <span class="nav-text">Unified Files</span></div>
+                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-area"></i> <span class="nav-text">Network Monitor</span></div>
+                <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear"></i> <span class="nav-text">Sub-Users</span></div>
+                <div onclick="tab('profile')" id="nav-profile" class="nav-link"><i class="fa-solid fa-user-pen"></i> <span class="nav-text">Profile Editor</span></div>
             </nav>
-            <div class="p-6">
-                <div class="glass-panel rounded-2xl p-4 text-center">
-                    <span id="user-rank" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-blue-500/10 text-blue-500 mb-2 inline-block">---</span>
-                    <p class="text-xs text-white font-bold">Mohamed Rashed</p>
+
+            <div class="p-4 border-t border-white/5">
+                <div class="glass-panel rounded-xl p-3 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-xs">MR</div>
+                    <div class="profile-full overflow-hidden">
+                        <p id="display-name" class="text-[11px] text-white font-bold truncate">Mohamed Rashed</p>
+                        <span class="text-[8px] font-black uppercase text-blue-500">ADMIN</span>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -66,38 +69,61 @@
                 <div id="file-list" class="space-y-3"><p class="text-gray-600 italic">No node linked.</p></div>
             </section>
 
-            <section id="view-google" class="hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-3xl font-extrabold text-white">Google Drive</h2>
-                    <button class="bg-emerald-500 text-white px-6 py-2 rounded-lg font-bold text-[10px] uppercase">Add G-Drive</button>
-                </div>
-                <div class="storage-card flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <i class="fa-brands fa-google-drive text-2xl text-emerald-500"></i>
-                        <div><p class="text-white font-bold">Primary Drive</p><p class="text-[10px] text-gray-500">15GB Total Capacity</p></div>
+            <section id="view-network" class="hidden space-y-8">
+                <h2 class="text-3xl font-extrabold text-white">Network Traffic</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-blue-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Incoming Rate</p>
+                        <h3 id="net-in" class="text-2xl font-black text-white mt-2">0.00 KB/s</h3>
                     </div>
-                    <div class="text-right"><p class="text-xs text-white font-mono">0.0% Used</p></div>
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-emerald-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Outgoing Rate</p>
+                        <h3 id="net-out" class="text-2xl font-black text-white mt-2">0.00 KB/s</h3>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-purple-500">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Active Packets</p>
+                        <h3 id="net-packets" class="text-2xl font-black text-white mt-2">1,244</h3>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl chart-container">
+                    <canvas id="networkChart"></canvas>
                 </div>
             </section>
 
-            <section id="view-degoo" class="hidden space-y-6">
-                <h2 class="text-3xl font-extrabold text-white">Degoo Monitor</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="storage-card">
-                        <p class="text-[10px] font-bold text-gray-500 mb-4 uppercase">Storage Health</p>
-                        <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-500 h-full w-[85%]"></div>
+            <section id="view-users" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-white">User Access List</h2>
+                    <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-[10px] uppercase hover:bg-blue-500">+ Add Node User</button>
+                </div>
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            <tr><th class="p-5">User Address / ID</th><th class="p-5">Privileges</th><th class="p-5">Status</th></tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-USR-8821 (Hitome)</td><td class="p-5"><span class="px-2 py-1 rounded bg-red-500/10 text-red-500 text-[9px] font-black uppercase">Owner</span></td><td class="p-5 text-emerald-500">Online</td></tr>
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-USR-4432 (Zlacer)</td><td class="p-5"><span class="px-2 py-1 rounded bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase">Editor</span></td><td class="p-5 text-gray-500">Idle</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-profile" class="hidden space-y-6">
+                <h2 class="text-3xl font-extrabold text-white">Profile Settings</h2>
+                <div class="glass-panel p-8 rounded-3xl max-w-xl">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Display Name</label>
+                            <input type="text" id="edit-name" value="Mohamed Rashed" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-blue-500 outline-none transition-all">
                         </div>
-                        <div class="flex justify-between mt-3 text-[10px] font-bold">
-                            <span class="text-white">850GB Used</span>
-                            <span class="text-gray-500">1024GB Total</span>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">System Avatar</label>
+                            <div class="flex gap-4">
+                                <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-2xl font-bold">MR</div>
+                                <button class="text-[10px] text-blue-400 font-bold uppercase underline">Upload New</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="storage-card">
-                        <p class="text-[10px] font-bold text-gray-500 mb-4 uppercase">Connection</p>
-                        <div class="flex items-center gap-2 text-emerald-500 font-bold text-xs">
-                            <i class="fa-solid fa-circle-check"></i> Degoo API Connected
-                        </div>
+                        <button onclick="saveProfile()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold mt-6 hover:bg-blue-500 transition-all">Save Changes</button>
                     </div>
                 </div>
             </section>
@@ -106,83 +132,100 @@
     </div>
 
     <script>
-        // PERMISSION SYSTEM
-        const LEVELS = {
-            "zonix2026": "ADMIN",
-            "smr2010000": "EDITOR",
-            "guest123": "VIEWER"
-        };
-        let currentRank = "";
-
-        function authorize() {
-            const pass = document.getElementById('access-pass').value;
-            if(LEVELS[pass]) {
-                currentRank = LEVELS[pass];
-                document.getElementById('login-gate').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('user-rank').innerText = currentRank;
-            } else {
-                const err = document.getElementById('auth-error');
-                err.style.opacity = "1"; setTimeout(() => err.style.opacity = "0", 2000);
-            }
+        // SIDEBAR MINIMIZER
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggle-icon');
+            sidebar.classList.toggle('minimized');
+            icon.classList.toggle('fa-chevron-left');
+            icon.classList.toggle('fa-chevron-right');
         }
 
+        // TABS
         function tab(name) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById('view-'+name).classList.remove('hidden');
             document.getElementById('nav-'+name).classList.add('active');
+            if (name === 'network') initNetworkChart();
         }
 
-        // MSAL CONFIG (OneDrive)
+        // PROFILE EDITOR
+        function saveProfile() {
+            const newName = document.getElementById('edit-name').value;
+            document.getElementById('display-name').innerText = newName;
+            alert("System Profile Updated.");
+        }
+
+        // NETWORK MONITORING LOGIC
+        let netChart;
+        function initNetworkChart() {
+            if (netChart) return;
+            const ctx = document.getElementById('networkChart').getContext('2d');
+            netChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        label: 'Network Load',
+                        data: Array(20).fill(0),
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { x: { display: false }, y: { display: false } },
+                    plugins: { legend: { display: false } } 
+                }
+            });
+
+            setInterval(() => {
+                const val = Math.floor(Math.random() * 100);
+                netChart.data.datasets[0].data.shift();
+                netChart.data.datasets[0].data.push(val);
+                netChart.update('none');
+                document.getElementById('net-in').innerText = (val * 0.82).toFixed(2) + " KB/s";
+                document.getElementById('net-out').innerText = (val * 0.45).toFixed(2) + " KB/s";
+            }, 1000);
+        }
+
+        // MSAL (Fixing the Handshake Error)
         const client = new msal.PublicClientApplication({
-            auth: { clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", authority: "https://login.microsoftonline.com/common" }
+            auth: { 
+                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
+                authority: "https://login.microsoftonline.com/common",
+                redirectUri: window.location.origin + window.location.pathname
+            }
         });
 
         document.getElementById('ms-init').addEventListener('click', async () => {
             try {
-                const res = await client.loginPopup({ 
-                    scopes: ["Files.Read.All", "Sites.Read.All"], 
-                    prompt: "select_account" 
-                });
-                fetchFiles(res.accessToken);
-            } catch (err) { alert("Enable popups in browser settings!"); }
+                const res = await client.loginPopup({ scopes: ["Files.Read.All", "Sites.Read.All"], prompt: "select_account" });
+                renderFiles(res.accessToken);
+            } catch (err) { console.error(err); alert("Handshake Error: Check your Browser Settings (Popups)"); }
         });
 
-        async function fetchFiles(token) {
+        async function renderFiles(token) {
             const list = document.getElementById('file-list');
-            list.innerHTML = '<div class="animate-pulse text-blue-500 font-bold">Syncing 100GB Node...</div>';
-            
+            list.innerHTML = '<div class="text-blue-500 font-bold animate-pulse">Syncing Shared Volume...</div>';
             try {
-                // Fetch shared items where the 100GB folder is
-                const sReq = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const sReq = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", { headers: { Authorization: `Bearer ${token}` } });
                 const sData = await sReq.json();
-                
                 let html = '';
                 sData.value.forEach(item => {
-                    const name = item.name || item.remoteItem?.name;
-                    const size = item.size ? (item.size / (1024**3)).toFixed(2) + " GB" : "DIR";
-                    
-                    // Permission Logic: Hide buttons if user is a Viewer
-                    const actions = currentRank === "VIEWER" ? '' : `<button class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded text-[10px] font-bold">MANAGE</button>`;
-
-                    html += `
-                        <div class="storage-card flex justify-between items-center">
-                            <div class="flex items-center gap-4">
-                                <i class="fa-solid fa-folder text-yellow-500"></i>
-                                <div><p class="text-white text-sm font-bold">${name}</p><span class="text-[9px] text-blue-500 font-black">SHARED NODE</span></div>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <span class="text-[10px] font-mono text-gray-500">${size}</span>
-                                ${actions}
-                            </div>
-                        </div>
-                    `;
+                    html += `<div class="glass-panel p-4 rounded-xl flex justify-between items-center">
+                        <div class="flex items-center gap-4"><i class="fa-solid fa-folder text-yellow-500"></i>
+                        <span class="text-white text-sm font-bold">${item.name || item.remoteItem?.name}</span></div>
+                        <span class="text-[9px] text-blue-500 font-black">SHARED NODE</span>
+                    </div>`;
                 });
-                list.innerHTML = html || '<p class="text-gray-500">No shared files found.</p>';
-            } catch (e) { list.innerHTML = '<p class="text-red-500">API Handshake Failed.</p>'; }
+                list.innerHTML = html || '<p class="text-gray-500">No shared nodes found.</p>';
+            } catch (e) { list.innerHTML = '<p class="text-red-500 font-bold">API Access Error.</p>'; }
         }
     </script>
 </body>
