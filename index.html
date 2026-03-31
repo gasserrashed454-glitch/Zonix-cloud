@@ -21,9 +21,10 @@
         .view-section.active { display: block; }
 
         .stat-card { background: #15171e; border: 1px solid #1e2129; border-radius: 8px; padding: 20px; }
-        .console { background: black; border: 1px solid #1e2129; border-radius: 8px; padding: 15px; font-family: monospace; font-size: 12px; color: #10b981; min-height: 250px; overflow-y: auto; }
+        .console { background: black; border: 1px solid #1e2129; border-radius: 8px; padding: 15px; font-family: monospace; font-size: 11px; color: #10b981; min-height: 300px; overflow-y: auto; }
         
         input, select { background: #1c1f26; border: 1px solid #2d3139; border-radius: 4px; padding: 10px; color: white; width: 100%; outline: none; }
+        .btn-ms { transition: 0.3s; border-radius: 6px; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
@@ -44,44 +45,53 @@
                 <div onclick="showView('network')" id="nav-network" class="nav-item"><i class="fa-solid fa-network-wired"></i> <span>Network</span></div>
                 <div onclick="showView('users')" id="nav-users" class="nav-item"><i class="fa-solid fa-users"></i> <span>Users</span></div>
             </nav>
+            <div class="p-4 border-t border-[#1e2129]">
+                <button onclick="switchAccount()" class="w-full py-2 text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-all">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Switch MS Account
+                </button>
+            </div>
         </aside>
 
         <main class="flex-1 flex flex-col min-w-0">
             <section id="view-files" class="view-section active">
                 <div class="flex justify-between items-center mb-8">
-                    <h1 class="text-2xl text-white font-bold">OneDrive Node</h1>
-                    <button id="ms-login" class="bg-white text-black px-6 py-2 rounded font-bold text-xs uppercase">Initialize Handshake</button>
+                    <div>
+                        <h1 class="text-2xl text-white font-bold">OneDrive Node</h1>
+                        <p class="text-xs text-gray-500 mt-1">Instance: <span class="text-blue-500 font-mono">AZ-65EDD14C</span></p>
+                    </div>
+                    <button id="ms-login" class="btn-ms bg-white text-black px-6 py-3 hover:bg-gray-200">Initialize Node</button>
                 </div>
+                
                 <div id="file-container" class="bg-[#15171e] border border-[#1e2129] rounded-xl h-96 flex flex-col items-center justify-center italic text-gray-600">
-                    <i class="fa-solid fa-cloud-arrow-up text-4xl mb-4"></i>
-                    Awaiting handshake to display files...
+                    <i class="fa-solid fa-cloud-arrow-up text-4xl mb-4 text-blue-600/20"></i>
+                    Awaiting encrypted handshake...
                 </div>
             </section>
 
             <section id="view-startup" class="view-section">
-                <h1 class="text-2xl text-white font-bold mb-6">Console & Startup</h1>
+                <h1 class="text-2xl text-white font-bold mb-6">Console Controls</h1>
                 <div class="flex gap-3 mb-6">
-                    <button onclick="logAction('START')" class="bg-emerald-600 text-white px-6 py-2 rounded text-xs font-bold uppercase">Start</button>
-                    <button onclick="logAction('RESTART')" class="bg-blue-600 text-white px-6 py-2 rounded text-xs font-bold uppercase">Restart</button>
-                    <button onclick="logAction('STOP')" class="bg-red-600 text-white px-6 py-2 rounded text-xs font-bold uppercase">Stop</button>
+                    <button onclick="logAction('START')" class="bg-emerald-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-emerald-500">Start</button>
+                    <button onclick="logAction('RESTART')" class="bg-blue-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-blue-500">Restart</button>
+                    <button onclick="logAction('STOP')" class="bg-red-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-red-500">Stop</button>
                 </div>
                 <div class="console" id="terminal-logs">
-                    [SYSTEM]: Terminal ready. Awaiting commands...<br>
+                    [SYSTEM]: Boot sequence completed. Node active.<br>
                 </div>
             </section>
 
             <section id="view-network" class="view-section">
-                <h1 class="text-2xl text-white font-bold mb-6">Network Throughput</h1>
+                <h1 class="text-2xl text-white font-bold mb-6">Network monitor</h1>
                 <div class="stat-card mb-6">
                     <canvas id="netGraph" height="100"></canvas>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="stat-card border-l-4 border-blue-600">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold">Incoming Data</p>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold">Incoming</p>
                         <p class="text-2xl text-white font-mono" id="val-in">0.0 Kb/s</p>
                     </div>
                     <div class="stat-card border-l-4 border-blue-600">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold">Outgoing Data</p>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold">Outgoing</p>
                         <p class="text-2xl text-white font-mono" id="val-out">0.0 Kb/s</p>
                     </div>
                 </div>
@@ -89,16 +99,20 @@
 
             <section id="view-users" class="view-section">
                 <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-2xl text-white font-bold">Sub-Users</h1>
-                    <button onclick="openModal()" class="bg-blue-600 text-white px-5 py-2 rounded text-xs font-bold uppercase">New Sub-User</button>
+                    <h1 class="text-2xl text-white font-bold">Sub-User Management</h1>
+                    <button onclick="openModal()" class="bg-blue-600 text-white px-5 py-2 rounded text-xs font-bold uppercase">New User</button>
                 </div>
                 <div class="bg-[#15171e] border border-[#1e2129] rounded-lg overflow-hidden">
                     <table class="w-full text-left text-sm">
                         <thead class="bg-[#1c1f26] text-gray-500 uppercase text-[10px] font-bold">
-                            <tr><th class="p-4">User Email</th><th class="p-4">Access Level</th><th class="p-4">Status</th></tr>
+                            <tr><th class="p-4">Email</th><th class="p-4">Permission</th><th class="p-4">Action</th></tr>
                         </thead>
                         <tbody id="user-list">
-                            <tr class="border-t border-[#1e2129]"><td class="p-4 text-white">admin@zonix.cloud</td><td class="p-4 text-blue-500 font-bold">OWNER</td><td class="p-4 text-gray-500 italic">Protected</td></tr>
+                            <tr class="border-t border-[#1e2129]">
+                                <td class="p-4 text-white">admin@zonix.cloud</td>
+                                <td class="p-4"><span class="bg-blue-500/10 text-blue-500 px-2 py-1 rounded text-[10px] font-bold">FULL ACCESS</span></td>
+                                <td class="p-4 text-gray-600 italic text-xs">System Owner</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -109,22 +123,22 @@
     <div id="user-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6">
         <div class="bg-[#15171e] w-full max-w-sm p-8 rounded-xl border border-[#1e2129]">
             <h3 class="text-white text-lg font-bold mb-6">Create Sub-User</h3>
-            <input type="email" id="sub-email" placeholder="Email Address" class="mb-4">
-            <input type="password" id="sub-pass" placeholder="Create Password" class="mb-4">
+            <input type="email" id="sub-email" placeholder="User Email" class="mb-4">
+            <input type="password" id="sub-pass" placeholder="Password" class="mb-4">
             <select id="sub-perm" class="mb-6">
                 <option value="VIEWER">View Only</option>
                 <option value="EDITOR">Edit Access</option>
-                <option value="ADMIN">Full Administrator</option>
+                <option value="ADMIN">Full Admin</option>
             </select>
             <div class="flex gap-3">
-                <button onclick="closeModal()" class="flex-1 bg-gray-800 text-white py-3 rounded font-bold text-xs">CANCEL</button>
-                <button onclick="saveSub()" class="flex-1 bg-blue-600 text-white py-3 rounded font-bold text-xs">CREATE</button>
+                <button onclick="closeModal()" class="flex-1 bg-gray-800 text-white py-3 rounded font-bold text-xs uppercase">Cancel</button>
+                <button onclick="saveSub()" class="flex-1 bg-blue-600 text-white py-3 rounded font-bold text-xs uppercase">Create</button>
             </div>
         </div>
     </div>
 
     <script>
-        // NAVIGATION
+        // 1. NAVIGATION
         function showView(view) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -133,14 +147,15 @@
             if(view === 'network') initChart();
         }
 
-        // STARTUP LOGS
+        // 2. CONSOLE
         function logAction(act) {
             const logs = document.getElementById('terminal-logs');
-            logs.innerHTML += `[${new Date().toLocaleTimeString()}] <span class="text-white">Executing ${act} sequence...</span><br>`;
+            const time = new Date().toLocaleTimeString();
+            logs.innerHTML += `<span class="text-gray-500">[${time}]</span> Executing <span class="text-blue-400">${act}</span> command...<br>`;
             logs.scrollTop = logs.scrollHeight;
         }
 
-        // USER MODAL
+        // 3. USER MANAGEMENT
         function openModal() { document.getElementById('user-modal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('user-modal').classList.add('hidden'); }
         function saveSub() {
@@ -149,13 +164,13 @@
             if(!email) return;
             document.getElementById('user-list').innerHTML += `<tr class="border-t border-[#1e2129]">
                 <td class="p-4 text-white">${email}</td>
-                <td class="p-4 text-emerald-500 font-bold">${perm}</td>
-                <td class="p-4"><button class="text-red-500 text-xs" onclick="this.closest('tr').remove()">Revoke</button></td>
+                <td class="p-4"><span class="bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded text-[10px] font-bold">${perm}</span></td>
+                <td class="p-4"><button class="text-red-500 text-xs font-bold" onclick="this.closest('tr').remove()">REVOKE</button></td>
             </tr>`;
             closeModal();
         }
 
-        // NETWORK GRAPH
+        // 4. NETWORK CHART
         function initChart() {
             if(window.myChart) return;
             const ctx = document.getElementById('netGraph').getContext('2d');
@@ -169,21 +184,41 @@
                 window.myChart.data.datasets[0].data.shift();
                 window.myChart.data.datasets[0].data.push(v);
                 window.myChart.update('none');
-                document.getElementById('val-in').innerText = (v * 1.4).toFixed(1) + ' Kb/s';
-                document.getElementById('val-out').innerText = (v * 0.3).toFixed(1) + ' Kb/s';
+                document.getElementById('val-in').innerText = (v * 1.8).toFixed(1) + ' Kb/s';
+                document.getElementById('val-out').innerText = (v * 0.5).toFixed(1) + ' Kb/s';
             }, 1000);
         }
 
-        // MSAL (OneDrive)
+        // 5. MSAL (OneDrive) & ACCOUNT SWITCHING
         const client = new msal.PublicClientApplication({
             auth: { clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", authority: "https://login.microsoftonline.com/common", redirectUri: window.location.href }
         });
+
+        // Initialize Handshake with Account Selector
         document.getElementById('ms-login').addEventListener('click', async () => {
             try {
-                const res = await client.loginPopup({ scopes: ["Files.Read.All"] });
-                document.getElementById('file-container').innerHTML = `<div class="p-4 text-white w-full h-full overflow-y-auto">Connected: ${res.account.username}<br><br>Loading directory...</div>`;
-            } catch (err) { alert("Popup Blocked!"); }
+                const res = await client.loginPopup({ 
+                    scopes: ["Files.Read.All"],
+                    prompt: "select_account" // Forces the user to pick an account
+                });
+                document.getElementById('file-container').innerHTML = `
+                    <div class="p-6 text-white w-full h-full overflow-y-auto font-mono text-xs">
+                        <span class="text-emerald-500 font-bold">CONNECTED:</span> ${res.account.username}<br><br>
+                        Fetching remote directory structure...<br>
+                        > root/minecraft_server/plugins<br>
+                        > root/minecraft_server/world
+                    </div>`;
+            } catch (err) { console.error(err); }
         });
+
+        // Logout/Switch Function
+        async function switchAccount() {
+            const accounts = client.getAllAccounts();
+            if (accounts.length > 0) {
+                await client.logoutPopup({ account: accounts[0], postLogoutRedirectUri: window.location.href });
+            }
+            location.reload();
+        }
     </script>
 </body>
 </html>
