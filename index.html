@@ -3,243 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | v2.0 Next-Gen</title>
+    <title>Zonix | Multi-Cloud v2.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
+        :root { --bg: #050507; --accent: #3b82f6; --glass: rgba(15, 17, 23, 0.8); }
+        body { background: var(--bg); color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; }
+        .glass-panel { background: var(--glass); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); }
         
-        :root {
-            --bg: #050507;
-            --card: #0f1117;
-            --accent: #3b82f6;
-            --border: rgba(255,255,255,0.08);
-        }
+        /* AUTH GATE */
+        #login-gate { position: fixed; inset: 0; z-index: 9999; background: #050507; display: flex; align-items: center; justify-content: center; }
+        .input-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono', monospace; }
 
-        body { 
-            background-color: var(--bg); 
-            color: #e2e8f0; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            margin: 0; overflow: hidden; height: 100vh; 
-        }
-
-        /* Glass Effects */
-        .glass { background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(10px); }
-        .sidebar { width: 280px; border-right: 1px solid var(--border); background: #0a0b10; }
+        /* SIDEBAR */
+        .sidebar { width: 260px; border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; }
+        .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; transition: 0.2s; cursor: pointer; margin: 4px 12px; font-size: 13px; }
+        .nav-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
         
-        /* Modern Login Gate */
-        #login-gate {
-            position: fixed; inset: 0; z-index: 9999;
-            background: radial-gradient(circle at center, #111827 0%, #050507 100%);
-            display: flex; align-items: center; justify-content: center;
-        }
+        .storage-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; transition: 0.3s; }
+        .storage-card:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
 
-        .login-box {
-            width: 100%; max-width: 400px; padding: 40px;
-            border-radius: 24px; text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .input-field {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: 12px; padding: 16px;
-            color: white; width: 100%; transition: 0.3s;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .input-field:focus { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); outline: none; }
-
-        .nav-btn {
-            padding: 14px 20px; margin: 4px 12px; border-radius: 12px;
-            display: flex; align-items: center; gap: 12px;
-            font-size: 14px; font-weight: 600; color: #94a3b8;
-            transition: 0.2s; cursor: pointer;
-        }
-        .nav-btn.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
-        
-        .file-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            border-radius: 12px; padding: 16px;
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 10px; transition: 0.2s;
-        }
-        .file-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.04); }
-        
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="login-gate">
-        <div class="login-box glass">
-            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto flex items-center justify-center text-white text-4xl font-extrabold mb-6 shadow-lg shadow-blue-500/20">Z</div>
-            <h2 class="text-2xl font-extrabold text-white mb-2">Zonix Terminal</h2>
-            <p class="text-gray-500 text-sm mb-8">Authorization required to mount nodes.</p>
-            
-            <input type="password" id="sys-pass" class="input-field mb-4" placeholder="••••••••">
-            <button onclick="checkAccess()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/30">
-                Unlock System
-            </button>
-            <p id="login-err" class="text-red-500 text-xs mt-4 opacity-0 font-bold uppercase tracking-widest">Invalid Security Key</p>
+        <div class="w-[380px] p-10 glass-panel rounded-[32px] text-center">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-extrabold mb-6 shadow-xl shadow-blue-600/20">Z</div>
+            <h2 class="text-xl font-extrabold text-white mb-6">Zonix Access Control</h2>
+            <input type="password" id="access-pass" class="input-box mb-4" placeholder="Enter Security Token">
+            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all">Unlock Terminal</button>
+            <p id="auth-error" class="text-red-500 text-[10px] mt-4 opacity-0 font-bold uppercase">Invalid Token</p>
         </div>
     </div>
 
     <div id="app" class="hidden flex h-full">
         <aside class="sidebar flex flex-col">
-            <div class="p-8">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">Z</div>
-                    <h1 class="text-xl font-black tracking-tighter text-white">ZONIX<span class="text-blue-500">.</span></h1>
-                </div>
-            </div>
-
-            <nav class="flex-1 space-y-1">
-                <div onclick="switchTab('files')" id="tab-files" class="nav-btn active"><i class="fa-solid fa-hard-drive"></i> Unified Storage</div>
-                <div onclick="switchTab('stats')" id="tab-stats" class="nav-btn"><i class="fa-solid fa-chart-line"></i> Performance</div>
-                <div onclick="switchTab('users')" id="tab-users" class="nav-item nav-btn"><i class="fa-solid fa-shield-halved"></i> Sub-Users</div>
+            <div class="p-8"><span class="text-white font-black text-xl">ZONIX<span class="text-blue-500">.</span></span></div>
+            <nav class="flex-1">
+                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree"></i> Unified Files</div>
+                <div onclick="tab('google')" id="nav-google" class="nav-link"><i class="fa-brands fa-google-drive"></i> Google Drive</div>
+                <div onclick="tab('degoo')" id="nav-degoo" class="nav-link"><i class="fa-solid fa-cloud"></i> Degoo Monitor</div>
             </nav>
-
             <div class="p-6">
-                <div class="glass rounded-2xl p-4">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase mb-2">Authenticated as</p>
-                    <p class="text-xs text-white font-bold truncate">Mohamed Rashed</p>
-                    <button onclick="location.reload()" class="text-[10px] text-red-400 font-bold mt-3 block hover:text-red-300">LOGOUT SYSTEM</button>
+                <div class="glass-panel rounded-2xl p-4 text-center">
+                    <span id="user-rank" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-blue-500/10 text-blue-500 mb-2 inline-block">---</span>
+                    <p class="text-xs text-white font-bold">Mohamed Rashed</p>
                 </div>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col min-w-0 bg-[#050507]">
-            <section id="view-files" class="p-10 overflow-y-auto">
-                <div class="flex justify-between items-start mb-10">
-                    <div>
-                        <h2 class="text-3xl font-extrabold text-white">Unified Storage</h2>
-                        <p class="text-gray-500 text-sm">Aggregating Personal and 100GB Shared Node</p>
-                    </div>
-                    <button id="ms-connect" class="bg-white text-black px-8 py-3 rounded-xl font-bold text-xs uppercase hover:scale-105 transition-transform">
-                        <i class="fa-brands fa-microsoft mr-2"></i> Initialize Handshake
-                    </button>
+        <main class="flex-1 overflow-y-auto p-10 bg-[#050507]">
+            
+            <section id="view-files" class="space-y-6">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-white">Unified Storage</h2>
+                    <button id="ms-init" class="bg-white text-black px-6 py-2 rounded-lg font-bold text-[10px] uppercase">Link OneDrive</button>
                 </div>
+                <div id="file-list" class="space-y-3"><p class="text-gray-600 italic">No node linked.</p></div>
+            </section>
 
-                <div id="file-grid" class="space-y-2">
-                    <div class="py-20 text-center opacity-20">
-                        <i class="fa-solid fa-folder-open text-6xl mb-4"></i>
-                        <p class="font-bold">Awaiting Cloud Handshake...</p>
+            <section id="view-google" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-white">Google Drive</h2>
+                    <button class="bg-emerald-500 text-white px-6 py-2 rounded-lg font-bold text-[10px] uppercase">Add G-Drive</button>
+                </div>
+                <div class="storage-card flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-brands fa-google-drive text-2xl text-emerald-500"></i>
+                        <div><p class="text-white font-bold">Primary Drive</p><p class="text-[10px] text-gray-500">15GB Total Capacity</p></div>
+                    </div>
+                    <div class="text-right"><p class="text-xs text-white font-mono">0.0% Used</p></div>
+                </div>
+            </section>
+
+            <section id="view-degoo" class="hidden space-y-6">
+                <h2 class="text-3xl font-extrabold text-white">Degoo Monitor</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="storage-card">
+                        <p class="text-[10px] font-bold text-gray-500 mb-4 uppercase">Storage Health</p>
+                        <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full w-[85%]"></div>
+                        </div>
+                        <div class="flex justify-between mt-3 text-[10px] font-bold">
+                            <span class="text-white">850GB Used</span>
+                            <span class="text-gray-500">1024GB Total</span>
+                        </div>
+                    </div>
+                    <div class="storage-card">
+                        <p class="text-[10px] font-bold text-gray-500 mb-4 uppercase">Connection</p>
+                        <div class="flex items-center gap-2 text-emerald-500 font-bold text-xs">
+                            <i class="fa-solid fa-circle-check"></i> Degoo API Connected
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section id="view-stats" class="hidden p-10">
-                <h2 class="text-2xl font-bold text-white mb-8">Performance Monitor</h2>
-                <div class="glass p-8 rounded-3xl h-80"><canvas id="perfChart"></canvas></div>
-            </section>
         </main>
     </div>
 
     <script>
-        // 1. SYSTEM SECURITY
-        function checkAccess() {
-            const pass = document.getElementById('sys-pass').value;
-            if(pass === "zonix2026" || pass === "smr2010000") {
+        // PERMISSION SYSTEM
+        const LEVELS = {
+            "zonix2026": "ADMIN",
+            "smr2010000": "EDITOR",
+            "guest123": "VIEWER"
+        };
+        let currentRank = "";
+
+        function authorize() {
+            const pass = document.getElementById('access-pass').value;
+            if(LEVELS[pass]) {
+                currentRank = LEVELS[pass];
                 document.getElementById('login-gate').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
+                document.getElementById('user-rank').innerText = currentRank;
             } else {
-                const err = document.getElementById('login-err');
-                err.style.opacity = "1";
-                setTimeout(() => err.style.opacity = "0", 2000);
+                const err = document.getElementById('auth-error');
+                err.style.opacity = "1"; setTimeout(() => err.style.opacity = "0", 2000);
             }
         }
 
-        // 2. TABS
-        function switchTab(t) {
+        function tab(name) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('view-' + t).classList.remove('hidden');
-            document.getElementById('tab-' + t).classList.add('active');
-            if(t === 'stats') initStats();
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById('view-'+name).classList.remove('hidden');
+            document.getElementById('nav-'+name).classList.add('active');
         }
 
-        // 3. UNIFIED CLOUD LOGIC (Fixing the "Missing Files" Issue)
-        const msalConfig = {
-            auth: { 
-                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
-                authority: "https://login.microsoftonline.com/common" 
-            }
-        };
-        const client = new msal.PublicClientApplication(msalConfig);
-
-        document.getElementById('ms-connect').addEventListener('click', async () => {
-            try {
-                const loginRes = await client.loginPopup({
-                    scopes: ["User.Read", "Files.Read", "Files.Read.All", "Sites.Read.All"], // Added more scopes to find shared files
-                    prompt: "select_account"
-                });
-                loadUnifiedFiles(loginRes.accessToken);
-            } catch (err) { alert("Handshake Error: Check Popups"); }
+        // MSAL CONFIG (OneDrive)
+        const client = new msal.PublicClientApplication({
+            auth: { clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", authority: "https://login.microsoftonline.com/common" }
         });
 
-        async function loadUnifiedFiles(token) {
-            const grid = document.getElementById('file-grid');
-            grid.innerHTML = '<div class="p-10 text-center text-blue-500 font-bold animate-pulse">Mounting Virtual Drives...</div>';
-
+        document.getElementById('ms-init').addEventListener('click', async () => {
             try {
-                // Fetch 1: Personal Files
-                const pReq = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
-                    headers: { Authorization: `Bearer ${token}` }
+                const res = await client.loginPopup({ 
+                    scopes: ["Files.Read.All", "Sites.Read.All"], 
+                    prompt: "select_account" 
                 });
-                
-                // Fetch 2: Shared With Me (This is where the 100GB folder lives)
+                fetchFiles(res.accessToken);
+            } catch (err) { alert("Enable popups in browser settings!"); }
+        });
+
+        async function fetchFiles(token) {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '<div class="animate-pulse text-blue-500 font-bold">Syncing 100GB Node...</div>';
+            
+            try {
+                // Fetch shared items where the 100GB folder is
                 const sReq = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
-                const personal = await pReq.json();
-                const shared = await sReq.json();
-
+                const sData = await sReq.json();
+                
                 let html = '';
-                const combined = [
-                    ...(personal.value || []).map(i => ({...i, type: 'Personal'})),
-                    ...(shared.value || []).map(i => ({...i, type: 'Shared Node'}))
-                ];
-
-                combined.forEach(item => {
+                sData.value.forEach(item => {
                     const name = item.name || item.remoteItem?.name;
                     const size = item.size ? (item.size / (1024**3)).toFixed(2) + " GB" : "DIR";
-                    const isFolder = item.folder || item.remoteItem?.folder;
+                    
+                    // Permission Logic: Hide buttons if user is a Viewer
+                    const actions = currentRank === "VIEWER" ? '' : `<button class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded text-[10px] font-bold">MANAGE</button>`;
 
                     html += `
-                        <div class="file-card">
+                        <div class="storage-card flex justify-between items-center">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5">
-                                    <i class="fa-solid ${isFolder ? 'fa-folder text-yellow-500' : 'fa-file text-blue-500'}"></i>
-                                </div>
-                                <div>
-                                    <p class="text-white font-bold text-sm">${name}</p>
-                                    <span class="text-[9px] font-black px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 uppercase">${item.type}</span>
-                                </div>
+                                <i class="fa-solid fa-folder text-yellow-500"></i>
+                                <div><p class="text-white text-sm font-bold">${name}</p><span class="text-[9px] text-blue-500 font-black">SHARED NODE</span></div>
                             </div>
-                            <div class="text-right">
-                                <p class="text-[10px] font-mono text-gray-500">${size}</p>
-                                <button class="text-[10px] text-blue-400 font-bold hover:underline mt-1">OPEN NODE</button>
+                            <div class="flex items-center gap-4">
+                                <span class="text-[10px] font-mono text-gray-500">${size}</span>
+                                ${actions}
                             </div>
                         </div>
                     `;
                 });
-                grid.innerHTML = html || '<p class="text-center p-20 text-gray-600 italic">No nodes found.</p>';
-            } catch (e) {
-                grid.innerHTML = '<p class="text-center p-20 text-red-500 font-bold">API Access Revoked by Microsoft.</p>';
-            }
-        }
-
-        function initStats() {
-            const ctx = document.getElementById('perfChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: { labels: [1,2,3,4,5], datasets: [{ label: 'Traffic', data: [10,25,15,30,20], borderColor: '#3b82f6', tension: 0.4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+                list.innerHTML = html || '<p class="text-gray-500">No shared files found.</p>';
+            } catch (e) { list.innerHTML = '<p class="text-red-500">API Handshake Failed.</p>'; }
         }
     </script>
 </body>
