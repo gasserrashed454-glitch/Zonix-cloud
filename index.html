@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | v2.6.8 Stable</title>
+    <title>Zonix | v2.6.9 Pro Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,6 +19,7 @@
         .sidebar.minimized { width: 80px; }
         .sidebar.minimized .nav-text, .sidebar.minimized .profile-details { display: none; }
         .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; transition: 0.2s; cursor: pointer; margin: 4px 12px; font-size: 13px; }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
         .nav-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
         .storage-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; }
         .hidden { display: none !important; }
@@ -29,10 +30,10 @@
 <body>
 
     <div id="login-gate">
-        <div class="w-[340px] p-8 glass-panel rounded-[32px] text-center border-blue-500/20 border">
+        <div class="w-[340px] p-8 glass-panel rounded-[32px] text-center border-blue-500/20 border shadow-2xl shadow-blue-500/10">
             <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-extrabold mb-6 shadow-lg shadow-blue-600/20">Z</div>
             <h2 class="text-lg font-extrabold text-white mb-2">Node Authorization</h2>
-            <p class="text-[9px] text-gray-500 mb-6 uppercase tracking-widest">Verify Handshake Protocol</p>
+            <p class="text-[9px] text-gray-500 mb-6 uppercase tracking-widest">Handshake v2.6.9 Protocol</p>
             <input type="password" id="access-pass" class="input-box mb-4 text-center" placeholder="Access Token">
             <button id="auth-btn" onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all active:scale-95">Verify & Boot</button>
         </div>
@@ -43,14 +44,17 @@
             <div class="p-6 flex items-center justify-between">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex-shrink-0 flex items-center justify-center text-white font-bold">Z</div>
-                    <span class="nav-text text-white font-black text-lg italic">ZONIX</span>
+                    <span class="nav-text text-white font-black text-lg italic tracking-tighter">ZONIX PRO</span>
                 </div>
-                <button onclick="toggleSidebar()" class="text-gray-500"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
+                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white transition"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
             </div>
             <nav class="flex-1">
                 <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree w-5"></i> <span class="nav-text">Unified Files</span></div>
                 <div onclick="tab('cloud')" id="nav-cloud" class="nav-link"><i class="fa-solid fa-cloud w-5"></i> <span class="nav-text">Cloud Monitor</span></div>
+                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-line w-5"></i> <span class="nav-text">Network Flow</span></div>
                 <div onclick="tab('terminal')" id="nav-terminal" class="nav-link"><i class="fa-solid fa-terminal w-5"></i> <span class="nav-text">Root Console</span></div>
+                <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear w-5"></i> <span class="nav-text">Access List</span></div>
+                <div onclick="tab('security')" id="nav-security" class="nav-link"><i class="fa-solid fa-shield-halved w-5"></i> <span class="nav-text">Security Node</span></div>
                 <div onclick="tab('profile')" id="nav-profile" class="nav-link"><i class="fa-solid fa-user-pen w-5"></i> <span class="nav-text">Settings</span></div>
             </nav>
             <div class="p-4 border-t border-white/5">
@@ -65,15 +69,16 @@
         </aside>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-[#050507]">
+            
             <section id="view-files" class="space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-extrabold text-white">Storage Node</h2>
-                    <button id="ms-init" onclick="syncMicrosoftNode()" class="bg-white hover:bg-gray-200 text-black px-5 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wider">Link Microsoft</button>
+                    <button id="ms-init" onclick="syncMicrosoftNode()" class="bg-white hover:bg-gray-200 text-black px-5 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all">Link Microsoft</button>
                 </div>
                 <div id="file-list" class="grid gap-3">
                     <div class="glass-panel p-10 rounded-2xl text-center border-dashed border-white/10 border">
                         <i class="fa-solid fa-cloud-arrow-up text-3xl text-white/10 mb-4"></i>
-                        <p class="text-xs text-gray-500">Node standby. Connect cloud to begin indexing.</p>
+                        <p class="text-xs text-gray-500">Connect cloud nodes to view Ravage SMP assets.</p>
                     </div>
                 </div>
             </section>
@@ -86,18 +91,78 @@
                             <i class="fa-brands fa-microsoft text-blue-500 text-xl"></i>
                             <div id="ms-status" class="text-[8px] font-black text-gray-500 uppercase">Standby</div>
                         </div>
-                        <div class="w-full bg-white/5 h-1 rounded-full mb-3">
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-3">
                             <div id="ms-bar" class="bg-blue-500 h-full w-0 transition-all duration-1000"></div>
                         </div>
                         <p id="ms-val" class="text-xs text-white font-mono tracking-tighter">-- / --</p>
                     </div>
+                    <div class="storage-card border-emerald-500/20">
+                        <div class="flex justify-between mb-4">
+                            <i class="fa-brands fa-google-drive text-emerald-500 text-xl"></i>
+                            <div id="gd-status" class="text-[8px] font-black text-emerald-500 uppercase">Active</div>
+                        </div>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-3">
+                            <div id="gd-bar" class="bg-emerald-500 h-full w-[15%]"></div>
+                        </div>
+                        <p class="text-xs text-white font-mono tracking-tighter">2.2GB / 15GB</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-network" class="hidden space-y-6">
+                <h2 class="text-2xl font-extrabold text-white">Traffic Node</h2>
+                <div class="glass-panel p-6 rounded-[32px] h-[350px] w-full">
+                    <canvas id="netChart"></canvas>
                 </div>
             </section>
 
             <section id="view-terminal" class="hidden space-y-4">
                 <h2 class="text-2xl font-extrabold text-white">Root Console</h2>
-                <div id="console-output" class="glass-panel p-6 rounded-2xl font-mono text-[11px] h-80 overflow-y-auto text-emerald-500/80 border-emerald-500/10 border">
-                    <p class="text-gray-600 mb-2">// ZONIX v2.6.8 STABLE READY...</p>
+                <div id="console-output" class="glass-panel p-6 rounded-2xl font-mono text-[11px] h-80 overflow-y-auto text-emerald-500/80 border-emerald-500/10 border leading-relaxed">
+                    <p class="text-gray-600 mb-2">// ZONIX KERNEL v2.6.9_STABLE BOOTED...</p>
+                    <p>> [SYSTEM] Handshake Protocol: SECURE</p>
+                </div>
+            </section>
+
+            <section id="view-users" class="hidden space-y-4">
+                <h2 class="text-2xl font-extrabold text-white">Access Directory</h2>
+                <div class="glass-panel rounded-2xl overflow-hidden text-[11px] border-white/5">
+                    <div class="p-4 border-b border-white/5 flex justify-between bg-white/5 font-bold text-gray-500">
+                        <span>IDENTIFIER</span><span>CLEARANCE</span>
+                    </div>
+                    <div class="p-4 flex justify-between border-b border-white/5 hover:bg-white/5 transition">
+                        <span class="font-mono text-white">ZNX-ROOT-454</span><span class="text-red-500 font-bold uppercase tracking-widest">Root Admin</span>
+                    </div>
+                    <div class="p-4 flex justify-between hover:bg-white/5 transition">
+                        <span class="font-mono text-white">ZNX-EDIT-772</span><span class="text-blue-500 font-bold uppercase tracking-widest">Editor</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-security" class="hidden space-y-4">
+                <h2 class="text-2xl font-extrabold text-white">Security Cluster</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel p-6 rounded-2xl text-center border-emerald-500/20">
+                        <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Shield</p>
+                        <p class="text-emerald-500 font-bold text-xl uppercase italic">Active</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl text-center">
+                        <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Enc</p>
+                        <p class="text-white font-bold text-xl uppercase italic">AES-256</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl text-center">
+                        <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Intrusion</p>
+                        <p class="text-gray-600 font-bold text-xl uppercase italic">0 Hits</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-profile" class="hidden space-y-6">
+                <h2 class="text-2xl font-extrabold text-white">System Config</h2>
+                <div class="glass-panel p-6 rounded-[28px] max-w-md">
+                    <label class="text-[9px] font-bold text-gray-500 uppercase mb-2 block tracking-widest">Identity Node</label>
+                    <input type="text" id="edit-name" value="Mohamed Rashed" class="input-box mb-6 text-sm">
+                    <button onclick="saveProfile()" class="bg-blue-600 hover:bg-blue-500 text-white w-full py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20">Sync Identity</button>
                 </div>
             </section>
         </main>
@@ -107,7 +172,7 @@
         const CLIENT_ID = "65edd14c-cf8a-4e75-8b19-1b185fc86b78";
         const SYSTEM_CONFIG = {
             vault: {
-                "zonix2026": { rank: "ROOT ADMIN", color: "text-red-500", access: ["files", "cloud", "terminal", "profile"] },
+                "zonix2026": { rank: "ROOT ADMIN", color: "text-red-500", access: ["files", "cloud", "network", "terminal", "users", "security", "profile"] },
                 "smr2010000": { rank: "EDITOR", color: "text-blue-500", access: ["files", "cloud", "profile"] }
             }
         };
@@ -136,14 +201,24 @@
                 document.getElementById('login-gate').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 document.getElementById('user-perm-badge').innerText = SYSTEM_CONFIG.vault[pass].rank;
+                document.getElementById('user-perm-badge').className = `text-[8px] font-black uppercase tracking-tighter ${SYSTEM_CONFIG.vault[pass].color}`;
+                
+                // Clearance Filtering
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    const view = link.id.split('-')[1];
+                    if (!SYSTEM_CONFIG.vault[pass].access.includes(view)) link.classList.add('hidden');
+                });
+                initChart();
             } else {
                 document.getElementById('access-pass').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('access-pass').classList.remove('animate-shake'), 500);
             }
         }
 
         function authorizeSilent() {
             document.getElementById('login-gate').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
+            initChart();
         }
 
         async function syncMicrosoftNode() {
@@ -171,14 +246,17 @@
                 const percent = ((used / total) * 100).toFixed(1);
 
                 document.getElementById('ms-status').innerText = "LIVE NODE";
-                document.getElementById('ms-status').className = "text-[8px] font-black text-blue-500 uppercase";
+                document.getElementById('ms-status').classList.replace('text-gray-500', 'text-blue-500');
                 document.getElementById('ms-bar').style.width = `${percent}%`;
                 document.getElementById('ms-val').innerText = `${used}GB / ${total}GB (${percent}%)`;
                 
-                logTerminal(`Handshake verified. Quota: ${used}GB used.`);
+                document.getElementById('ms-init').innerText = "SYNCED";
+                document.getElementById('ms-init').className = "bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wider";
+
+                logTerminal(`Handshake: Files.ReadWrite Scope granted.`);
                 fetchFiles(token);
             } catch (err) {
-                logTerminal("Handshake failed to parse quota.");
+                logTerminal("Quota fetch failed.");
             }
         }
 
@@ -191,25 +269,69 @@
             list.innerHTML = "";
             data.value.forEach(file => {
                 const div = document.createElement('div');
-                div.className = "glass-panel p-4 rounded-xl flex items-center justify-between";
-                div.innerHTML = `<div class="flex items-center gap-3"><i class="fa-solid fa-file text-blue-500"></i><p class="text-[11px] font-bold">${file.name}</p></div>`;
+                div.className = "glass-panel p-4 rounded-xl flex items-center justify-between hover:border-blue-500/30 transition group cursor-pointer";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid ${file.folder ? 'fa-folder text-blue-400' : 'fa-file-code text-gray-500'} group-hover:scale-110 transition"></i>
+                        <div>
+                            <p class="text-[11px] font-bold text-white">${file.name}</p>
+                            <p class="text-[9px] text-gray-600 font-mono uppercase">${(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                        </div>
+                    </div>
+                `;
                 list.appendChild(div);
             });
+        }
+
+        function tab(v) {
+            ['files', 'cloud', 'network', 'terminal', 'users', 'security', 'profile'].forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(`view-${v}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById(`nav-${v}`).classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('minimized');
+            document.getElementById('toggle-icon').className = sb.classList.contains('minimized') ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
         }
 
         function logTerminal(msg) {
             const out = document.getElementById('console-output');
             const p = document.createElement('p');
-            p.innerText = `> [LOG] ${msg}`;
-            out.appendChild(p);
+            p.innerText = `> [NODE] ${msg}`;
+            out.insertBefore(p, out.lastElementChild);
         }
 
-        function tab(v) {
-            ['files', 'cloud', 'terminal', 'profile'].forEach(id => document.getElementById(`view-${id}`).classList.add('hidden'));
-            document.getElementById(`view-${v}`).classList.remove('hidden');
+        function initChart() {
+            const ctx = document.getElementById('netChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        data: [12, 19, 3, 45, 62, 78],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        fill: true,
+                        tension: 0.5,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } },
+                        y: { display: false }
+                    }
+                }
+            });
         }
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('minimized'); }
     </script>
 </body>
 </html>
