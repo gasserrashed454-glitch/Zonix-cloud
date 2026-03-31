@@ -2,14 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zonix Cloud | Secure Multi-Node</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-        body { background-color: #030303; color: #f0f0f0; font-family: 'Space Grotesk', sans-serif; overflow: hidden; }
+        
+        /* Locking the screen to prevent accidental scrolling or zooming */
+        html, body { 
+            background-color: #030303; 
+            color: #f0f0f0; 
+            font-family: 'Space Grotesk', sans-serif; 
+            overflow: hidden; 
+            height: 100%; 
+            position: fixed; 
+            width: 100%; 
+        }
+
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .neon-border { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); }
         #login-gate { position: fixed; inset: 0; z-index: 1000; background: #000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
@@ -52,7 +63,7 @@
                     <i class="fa-brands fa-google-drive text-lg"></i>
                     <span class="hidden md:block font-medium">G-Drive</span>
                 </div>
-                <div class="sidebar-item flex items-center gap-4 px-6 py-4 cursor-pointer opacity-30 pointer-events-none">
+                <div id="nav-dropbox" onclick="switchNode('dropbox')" class="sidebar-item flex items-center gap-4 px-6 py-4 cursor-pointer text-gray-500 hover:text-white">
                     <i class="fa-brands fa-dropbox text-lg"></i>
                     <span class="hidden md:block font-medium">Dropbox</span>
                 </div>
@@ -104,6 +115,7 @@
     <script>
         let currentNode = 'onedrive';
 
+        // PIN Security Logic - Case insensitive and multi-key support
         function checkAccess() {
             const input = document.getElementById('ceo-pass').value.toLowerCase();
             const authorizedKeys = ["zonix2026", "smr2010000"];
@@ -121,11 +133,16 @@
             }
         }
 
+        // Microsoft Identity Configuration
         const msalConfig = {
             auth: {
                 clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
                 authority: "https://login.microsoftonline.com/common",
                 redirectUri: "https://gasserrashed454-glitch.github.io/Zonix-cloud/"
+            },
+            cache: {
+                cacheLocation: "localStorage",
+                storeAuthStateInCookie: true
             }
         };
 
@@ -133,23 +150,17 @@
 
         function switchNode(node) {
             currentNode = node;
-            // Update UI
-            document.getElementById('nav-onedrive').classList.remove('active-node');
-            document.getElementById('nav-gdrive').classList.remove('active-node');
+            // Reset active states
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active-node'));
             document.getElementById(`nav-${node}`).classList.add('active-node');
             
-            if(node === 'onedrive') {
-                document.getElementById('node-title').innerText = "OneDrive Node";
-                document.getElementById('connectBtn').innerText = "Initialize OneDrive";
-                document.getElementById('connectBtn').style.opacity = "1";
-                document.getElementById('cap-val').innerText = "100 GB";
-            } else {
-                document.getElementById('node-title').innerText = "G-Drive Node";
-                document.getElementById('connectBtn').innerText = "Initialize G-Drive";
-                document.getElementById('cap-val').innerText = "15 GB";
-            }
+            // Update Headers
+            const titles = { 'onedrive': 'OneDrive Node', 'gdrive': 'G-Drive Node', 'dropbox': 'Dropbox Node' };
+            document.getElementById('node-title').innerText = titles[node];
+            document.getElementById('connectBtn').innerText = `Initialize ${node.charAt(0).toUpperCase() + node.slice(1)}`;
+            document.getElementById('connectBtn').style.opacity = "1";
             
-            // Clear file list for new node
+            // Clear current view
             document.getElementById('fileList').innerHTML = '<i class="fa-solid fa-terminal text-4xl mb-4 opacity-10"></i><p class="text-xs uppercase tracking-[0.2em] font-bold">Awaiting Auth Handshake...</p>';
             document.getElementById('sync-val').innerText = "Inactive";
             document.getElementById('sync-val').className = "text-2xl font-bold text-gray-700";
@@ -159,7 +170,7 @@
             if (currentNode === 'onedrive') {
                 await connectOneDrive();
             } else {
-                alert("Google Drive integration requires a Google Cloud Client ID. Please configure it in your console.");
+                alert(`${currentNode.toUpperCase()} integration requires additional API configuration in the cloud console.`);
             }
         }
 
@@ -180,7 +191,7 @@
                 getFiles(loginResponse.accessToken);
             } catch (err) {
                 console.error(err);
-                alert("Auth Failure: Check Azure SPA Redirect URI settings.");
+                alert("Auth Failure: Ensure browser popups are allowed and Azure SPA settings are correct.");
             }
         }
 
