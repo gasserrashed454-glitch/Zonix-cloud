@@ -12,7 +12,7 @@
         body { background-color: #030303; color: #f0f0f0; font-family: 'Space Grotesk', sans-serif; overflow: hidden; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .neon-border { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); }
-        #login-gate { position: fixed; inset: 0; z-index: 1000; background: #000; display: flex; align-items: center; justify-content: center; }
+        #login-gate { position: fixed; inset: 0; z-index: 1000; background: #000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .sidebar-item:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         .active-node { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-right: 3px solid #3b82f6; }
         .file-card { transition: transform 0.2s, background 0.2s; }
@@ -47,11 +47,11 @@
                     <i class="fa-brands fa-microsoft text-lg"></i>
                     <span class="hidden md:block font-medium">OneDrive</span>
                 </div>
-                <div class="sidebar-item flex items-center gap-4 px-6 py-4 cursor-pointer opacity-30">
+                <div class="sidebar-item flex items-center gap-4 px-6 py-4 cursor-pointer opacity-40 hover:opacity-100 transition-opacity">
                     <i class="fa-brands fa-google-drive text-lg"></i>
                     <span class="hidden md:block font-medium">G-Drive</span>
                 </div>
-                <div class="sidebar-item flex items-center gap-4 px-6 py-4 cursor-pointer opacity-30">
+                <div class="sidebar-item flex items-center gap-4 px-6 py-4 cursor-pointer opacity-40 hover:opacity-100 transition-opacity">
                     <i class="fa-brands fa-dropbox text-lg"></i>
                     <span class="hidden md:block font-medium">Dropbox</span>
                 </div>
@@ -68,43 +68,45 @@
         <div class="flex-1 overflow-y-auto p-6 md:p-12">
             <header class="flex justify-between items-center mb-12">
                 <div>
-                    <h2 id="node-title" class="text-3xl font-bold tracking-tight">OneDrive Node</h2>
-                    <p class="text-sm text-gray-500">Managing storage via Microsoft Graph v2.0</p>
+                    <h2 id="node-title" class="text-3xl font-bold tracking-tight">Cloud Terminal</h2>
+                    <p class="text-sm text-gray-500">Accessing encrypted storage nodes</p>
                 </div>
                 <button id="connectBtn" onclick="connectOneDrive()" class="bg-white text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
-                    Link Account
+                    Link OneDrive
                 </button>
             </header>
 
             <div id="stats-area" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div class="glass p-6 rounded-[30px]">
-                    <p class="text-gray-500 text-[10px] font-bold uppercase mb-2">Capacity</p>
+                    <p class="text-gray-500 text-[10px] font-bold uppercase mb-2">Node Capacity</p>
                     <p class="text-2xl font-bold">100 GB</p>
                 </div>
                 <div class="glass p-6 rounded-[30px]">
-                    <p class="text-gray-500 text-[10px] font-bold uppercase mb-2">Sync Status</p>
+                    <p class="text-gray-500 text-[10px] font-bold uppercase mb-2">Sync Engine</p>
                     <p id="sync-val" class="text-2xl font-bold text-gray-700">Waiting</p>
                 </div>
                 <div class="glass p-6 rounded-[30px] border-l-4 border-blue-600">
-                    <p class="text-gray-500 text-[10px] font-bold uppercase mb-2">Session ID</p>
+                    <p class="text-gray-500 text-[10px] font-bold uppercase mb-2">Auth Instance</p>
                     <p class="text-xs font-mono text-blue-400 truncate">AZ-65EDD14C</p>
                 </div>
             </div>
 
-            <div class="glass rounded-[40px] p-2 min-h-[500px]">
+            <div class="glass rounded-[40px] p-2 min-h-[500px] border border-white/5">
                 <div id="fileList" class="flex flex-col items-center justify-center h-full min-h-[400px] text-gray-600">
-                    <i class="fa-solid fa-cloud-arrow-up text-4xl mb-4 opacity-20"></i>
-                    <p class="text-xs uppercase tracking-widest font-bold">Connect a cloud node to browse files</p>
+                    <i class="fa-solid fa-terminal text-4xl mb-4 opacity-10"></i>
+                    <p class="text-xs uppercase tracking-[0.2em] font-bold">Awaiting Cloud Handshake...</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. PIN Security Logic
+        // 1. PIN Security Logic - Supports multiple keys, case-insensitive
         function checkAccess() {
-            const pass = document.getElementById('ceo-pass').value;
-            if (pass === "zonix2026") {
+            const input = document.getElementById('ceo-pass').value.toLowerCase();
+            const authorizedKeys = ["zonix2026", "smr2010000"];
+
+            if (authorizedKeys.includes(input)) {
                 document.getElementById('login-gate').style.opacity = "0";
                 setTimeout(() => {
                     document.getElementById('login-gate').classList.add('hidden');
@@ -120,9 +122,13 @@
         // 2. Microsoft Identity Config
         const msalConfig = {
             auth: {
-                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", // YOUR NEW ID
+                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
                 authority: "https://login.microsoftonline.com/common",
                 redirectUri: "https://gasserrashed454-glitch.github.io/Zonix-cloud/"
+            },
+            cache: {
+                cacheLocation: "localStorage",
+                storeAuthStateInCookie: true
             }
         };
 
@@ -135,18 +141,19 @@
                     prompt: "select_account"
                 });
                 
-                // UI Refresh
-                document.getElementById('status-text').innerText = "OneDrive Linked";
+                // UI Updates for connected state
+                document.getElementById('status-text').innerText = "Online - OneDrive";
                 document.getElementById('status-text').className = "text-xs text-green-400 font-bold";
-                document.getElementById('sync-val').innerText = "Live";
+                document.getElementById('sync-val').innerText = "Active";
                 document.getElementById('sync-val').className = "text-2xl font-bold text-green-500";
-                document.getElementById('connectBtn').innerText = "Connected";
-                document.getElementById('connectBtn').classList.add('opacity-50');
+                document.getElementById('node-title').innerText = "OneDrive Storage";
+                document.getElementById('connectBtn').innerText = "Linked";
+                document.getElementById('connectBtn').classList.add('opacity-40');
                 
                 getFiles(loginResponse.accessToken);
             } catch (err) {
                 console.error(err);
-                alert("Connection failed. Ensure Azure SPA Redirect URI is set.");
+                alert("Auth Failure: Check Azure SPA Redirect URI settings.");
             }
         }
 
@@ -163,25 +170,29 @@
             list.innerHTML = '';
             list.className = "p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
             
-            files.forEach(file => {
-                const item = document.createElement('div');
-                item.className = "file-card glass p-5 rounded-3xl flex items-center gap-4 cursor-pointer";
-                item.innerHTML = `
-                    <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                        <i class="fa-solid ${file.folder ? 'fa-folder text-yellow-500' : 'fa-file text-blue-400'} text-lg"></i>
-                    </div>
-                    <div class="flex-1 overflow-hidden">
-                        <p class="text-xs font-bold text-white truncate">${file.name}</p>
-                        <p class="text-[9px] text-gray-500 uppercase tracking-tight">${file.size ? (file.size/1024/1024).toFixed(2) + ' MB' : 'Folder'}</p>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
+            if (files && files.length > 0) {
+                files.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = "file-card glass p-5 rounded-3xl flex items-center gap-4 cursor-pointer border border-white/5";
+                    item.innerHTML = `
+                        <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                            <i class="fa-solid ${file.folder ? 'fa-folder text-yellow-500' : 'fa-file-lines text-blue-400'} text-xl"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="text-xs font-bold text-white truncate">${file.name}</p>
+                            <p class="text-[9px] text-gray-500 uppercase tracking-tighter">${file.size ? (file.size/1024/1024).toFixed(2) + ' MB' : 'Directory'}</p>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            } else {
+                list.innerHTML = '<p class="text-gray-600 text-xs uppercase font-bold tracking-widest">No objects detected in root</p>';
+            }
         }
 
         function switchNode(node) {
-            // Logic for future expansion to Google/Dropbox
-            console.log("Switching to " + node);
+            // Future logic for Google/Dropbox integration
+            console.log("Routing to: " + node);
         }
     </script>
 </body>
