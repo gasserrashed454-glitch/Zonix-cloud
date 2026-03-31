@@ -58,12 +58,11 @@
             </div>
 
             <nav class="flex-1 mt-2">
-                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree w-5"></i> <span class="nav-text">Unified Files</span></div>
+                <div onclick="tab('master')" id="nav-master" class="nav-link active text-emerald-400"><i class="fa-solid fa-database w-5"></i> <span class="nav-text font-bold uppercase tracking-widest">Master File</span></div>
                 <div onclick="tab('void')" id="nav-void" class="nav-link text-blue-400"><i class="fa-solid fa-atom w-5"></i> <span class="nav-text font-bold">Neural Void</span></div>
                 <div onclick="tab('cloud')" id="nav-cloud" class="nav-link"><i class="fa-solid fa-cloud w-5"></i> <span class="nav-text">Cloud Nodes</span></div>
                 <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-line w-5"></i> <span class="nav-text">Network Flow</span></div>
                 <div onclick="tab('terminal')" id="nav-terminal" class="nav-link"><i class="fa-solid fa-terminal w-5"></i> <span class="nav-text">Root Console</span></div>
-                <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear w-5"></i> <span class="nav-text">Access List</span></div>
                 <div onclick="tab('security')" id="nav-security" class="nav-link"><i class="fa-solid fa-shield-halved w-5"></i> <span class="nav-text">Security Node</span></div>
             </nav>
             
@@ -76,6 +75,22 @@
         </aside>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <section id="view-master" class="space-y-6">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h2 class="text-3xl font-black text-white italic uppercase tracking-tighter">Master File System</h2>
+                        <p class="text-xs text-gray-500 font-mono">Aggregating all linked free space...</p>
+                    </div>
+                    <label class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-xl font-bold text-[10px] uppercase cursor-pointer transition-all">
+                        <i class="fa-solid fa-plus mr-2"></i> Upload to Master
+                        <input type="file" id="master-upload" class="hidden" onchange="uploadToMaster(event)">
+                    </label>
+                </div>
+                
+                <div id="master-file-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 py-6">
+                    </div>
+            </section>
+
             <section id="view-void" class="hidden space-y-6">
                 <div class="p-10 rounded-[40px] border border-blue-500/20 bg-gradient-to-br from-blue-600/10 to-emerald-600/10 relative overflow-hidden">
                     <div class="absolute -right-20 -top-20 w-64 h-64 bg-blue-600/20 blur-[100px] void-pulse"></div>
@@ -95,17 +110,11 @@
                 </div>
             </section>
 
-            <section id="view-files" class="space-y-6">
-                <h2 class="text-2xl font-extrabold text-white">Cloud Explorer</h2>
-                <div id="file-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-            </section>
-
             <section id="view-cloud" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-extrabold text-white">Node Health</h2>
+                    <h2 class="text-2xl font-extrabold text-white">Cloud Nodes</h2>
                     <div class="flex gap-2">
                         <button onclick="linkOneDrive()" class="bg-blue-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest">+ OneDrive</button>
-                        <button onclick="linkGDrive()" class="bg-gray-800 text-gray-500 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest cursor-not-allowed">G-Drive (Offline)</button>
                     </div>
                 </div>
                 <div id="node-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
@@ -116,15 +125,8 @@
             </section>
 
             <section id="view-terminal" class="hidden h-96 glass-panel rounded-3xl p-6 overflow-hidden border-emerald-500/10 border relative">
-                <div id="console-output" class="text-emerald-500/80 text-[11px] leading-relaxed overflow-y-auto h-full pr-4">
+                <div id="console-output" class="text-emerald-500/80 text-[11px] leading-relaxed overflow-y-auto h-full pr-4 font-mono">
                     <p class="opacity-40">// SYSTEM BOOT SUCCESSFUL...</p>
-                </div>
-            </section>
-
-            <section id="view-users" class="hidden glass-panel rounded-3xl overflow-hidden border-white/5 border">
-                <div class="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
-                    <span class="text-white font-bold">ZNX-ROOT-ALPHA</span>
-                    <span class="text-red-500 font-black text-[10px] uppercase">Master Access</span>
                 </div>
             </section>
 
@@ -140,13 +142,17 @@
         const MS_ID = "667d295c-611e-43ec-92f1-0d4dc1fb3293";
         const TENANT_ID = "703d0d49-0d7a-4155-b5ba-f7336f13345a";
         
+        // REDIRECT URI FIX: Matches your screenshot error exactly
+        const REDIRECT_URI = "https://gasserrashed454-glitch.github.io/Zonix-cloud/";
+
         let nodes = JSON.parse(localStorage.getItem('znx_final_nodes')) || [];
+        let masterFiles = JSON.parse(localStorage.getItem('znx_master_files')) || [];
         
         const msalConfig = {
             auth: { 
                 clientId: MS_ID, 
                 authority: `https://login.microsoftonline.com/${TENANT_ID}`, 
-                redirectUri: window.location.href 
+                redirectUri: REDIRECT_URI // FIXED REDIRECT
             },
             cache: { cacheLocation: "localStorage" }
         };
@@ -158,76 +164,121 @@
                 document.getElementById('app').classList.remove('hidden');
                 render();
                 initChart();
-                logConsole("OneDrive Protocol Patched. Google Drive Offline.");
+                logConsole("Zonix v3.2 Master Protocol Engaged.");
             }
         }
 
         async function linkOneDrive() {
             try {
-                logConsole("Requesting Scopes: Files.ReadWrite.All...");
+                logConsole("Handshaking with MS Registry...");
                 const res = await msalClient.loginPopup({ 
                     scopes: ["User.Read", "Files.ReadWrite.All", "offline_access"] 
                 });
                 
                 if(!nodes.find(n => n.id === res.account.username)) {
-                    nodes.push({ id: res.account.username, type: 'OneDrive', token: res.accessToken, space: 5, free: 5.0 });
+                    nodes.push({ id: res.account.username, type: 'OneDrive', token: res.accessToken, space: 5.0, free: 5.0 });
                     save();
-                    logConsole(`OneDrive Node Linked: ${res.account.username}`);
+                    logConsole(`Node [${res.account.username}] Aggregated.`);
                 }
             } catch (e) {
-                logConsole("Auth Failed. Redirecting...");
-                msalClient.loginRedirect({ scopes: ["User.Read", "Files.ReadWrite.All", "offline_access"] });
+                logConsole("Handshake failed. Ensure Redirect URI in Azure matches exactly.");
             }
         }
 
-        function linkGDrive() {
-            logConsole("Google Node Protocol: DISABLED TEMPORARILY.");
-            alert("Google Drive integration is temporarily disabled.");
+        // NEW: UNLINK OPTION
+        function unlinkNode(nodeId) {
+            nodes = nodes.filter(n => n.id !== nodeId);
+            logConsole(`Severed link with Node: ${nodeId}`);
+            save();
         }
 
-        function save() { localStorage.setItem('znx_final_nodes', JSON.stringify(nodes)); render(); }
+        // NEW: MASTER FILE UPLOAD (Uses free storage from any node)
+        function uploadToMaster(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            if(nodes.length === 0) {
+                alert("No active nodes. Link a OneDrive account first.");
+                return;
+            }
+
+            const fileSizeGB = (file.size / (1024 ** 3)).toFixed(4);
+            // Smart routing: pick first node with enough space
+            let targetNode = nodes.find(n => n.free >= parseFloat(fileSizeGB));
+
+            if(targetNode) {
+                targetNode.free -= parseFloat(fileSizeGB);
+                masterFiles.push({ name: file.name, size: fileSizeGB, node: targetNode.id, date: new Date().toLocaleDateString() });
+                localStorage.setItem('znx_master_files', JSON.stringify(masterFiles));
+                save();
+                logConsole(`Master System: Routing ${file.name} to Node [${targetNode.id}]`);
+            } else {
+                logConsole("Master Error: Total Void Insufficient.");
+            }
+        }
+
+        function save() { 
+            localStorage.setItem('znx_final_nodes', JSON.stringify(nodes)); 
+            render(); 
+        }
 
         function render() {
             const nodeGrid = document.getElementById('node-grid');
-            const fileGrid = document.getElementById('file-grid');
-            nodeGrid.innerHTML = ''; fileGrid.innerHTML = '';
+            const masterGrid = document.getElementById('master-file-grid');
+            nodeGrid.innerHTML = ''; masterGrid.innerHTML = '';
             
             let total = 0, free = 0;
-            const activeNodes = nodes.filter(n => n.type === 'OneDrive');
 
-            activeNodes.forEach(n => {
+            // Render Nodes
+            nodes.forEach(n => {
                 total += n.space; free += n.free;
                 const card = document.createElement('div');
                 card.className = "glass-panel p-6 rounded-2xl border-white/5 border";
                 card.innerHTML = `
-                    <div class="flex justify-between mb-4"><i class="fa-brands fa-microsoft text-blue-500 text-xl"></i><span class="text-[8px] text-blue-500 font-bold uppercase">Linked</span></div>
+                    <div class="flex justify-between mb-4">
+                        <i class="fa-brands fa-microsoft text-blue-500 text-xl"></i>
+                        <button onclick="unlinkNode('${n.id}')" class="text-red-500 hover:text-red-400 text-[9px] font-bold uppercase"><i class="fa-solid fa-link-slash"></i> Unlink</button>
+                    </div>
                     <p class="text-[10px] text-white font-mono truncate">${n.id}</p>
-                    <div class="mt-2 bg-white/5 h-1 rounded-full overflow-hidden"><div style="width: 2%" class="bg-blue-500 h-full"></div></div>
+                    <p class="text-[9px] text-gray-500 mt-2">${n.free.toFixed(2)} GB Remaining</p>
                 `;
                 nodeGrid.appendChild(card);
+            });
 
-                for(let i=0; i<3; i++){
-                    const f = document.createElement('div');
-                    f.className = "glass-panel p-4 rounded-xl border-white/5 border text-center";
-                    f.innerHTML = `<i class="fa-solid fa-link text-blue-500 opacity-50 mb-2"></i><p class="text-[9px] text-white truncate font-bold">Node_File_${i}.znx</p>`;
-                    fileGrid.appendChild(f);
-                }
+            // Render Master Files
+            masterFiles.forEach((f, index) => {
+                const item = document.createElement('div');
+                item.className = "glass-panel p-4 rounded-2xl border-white/5 border hover:border-emerald-500/50 transition-all flex flex-col items-center group relative";
+                item.innerHTML = `
+                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i onclick="masterFiles.splice(${index},1); localStorage.setItem('znx_master_files', JSON.stringify(masterFiles)); render();" class="fa-solid fa-trash text-red-500 text-[10px] cursor-pointer"></i>
+                    </div>
+                    <i class="fa-solid fa-file-shield text-emerald-500 text-xl mb-3"></i>
+                    <p class="text-[10px] text-white font-bold truncate w-full text-center">${f.name}</p>
+                    <p class="text-[8px] text-gray-500 font-mono mt-1">${f.size} GB</p>
+                    <button class="mt-3 text-[8px] bg-white/5 px-3 py-1 rounded-full text-white font-bold uppercase tracking-widest hover:bg-white/10">Download</button>
+                `;
+                masterGrid.appendChild(item);
             });
 
             document.getElementById('void-total').innerText = total.toFixed(1) + " GB";
             document.getElementById('void-free').innerText = free.toFixed(1) + " GB";
-            document.getElementById('sidebar-void-bar').style.width = total > 0 ? "2%" : "0%";
+            const percent = total > 0 ? ((total - free) / total) * 100 : 0;
+            document.getElementById('sidebar-void-bar').style.width = percent + "%";
         }
 
         function tab(v) {
-            ['files', 'void', 'cloud', 'network', 'terminal', 'users', 'security'].forEach(id => document.getElementById(`view-${id}`).classList.add('hidden'));
+            ['master', 'void', 'cloud', 'network', 'terminal', 'security'].forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if(el) el.classList.add('hidden');
+            });
             document.getElementById(`view-${v}`).classList.remove('hidden');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(`nav-${v}`).classList.add('active');
+            const activeNav = document.getElementById(`nav-${v}`);
+            if(activeNav) activeNav.classList.add('active');
         }
 
         function logConsole(msg) {
-            const p = document.createElement('p'); p.innerHTML = `<span class="text-blue-500 font-bold">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+            const p = document.createElement('p'); p.innerHTML = `<span class="text-emerald-500 font-bold">></span> ${msg}`;
             document.getElementById('console-output').prepend(p);
         }
 
