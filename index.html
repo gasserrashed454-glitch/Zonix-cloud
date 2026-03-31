@@ -3,47 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | v2.3 Management</title>
+    <title>Zonix | v2.4 Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
-        :root { --bg: #050507; --accent: #3b82f6; --glass: rgba(15, 17, 23, 0.9); }
+        :root { --bg: #050507; --accent: #3b82f6; --glass: rgba(15, 17, 23, 0.95); }
         body { background: var(--bg); color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; }
-        .glass-panel { background: var(--glass); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08); }
+        .glass-panel { background: var(--glass); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
         
+        /* LOGIN SYSTEM */
+        #login-gate { position: fixed; inset: 0; z-index: 10000; background: #050507; display: flex; align-items: center; justify-content: center; }
+        .input-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono', monospace; outline: none; }
+        .input-box:focus { border-color: var(--accent); }
+
         /* MINIMIZABLE SIDEBAR */
-        .sidebar { width: 260px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; position: relative; z-index: 50; }
+        .sidebar { width: 260px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; z-index: 50; }
         .sidebar.minimized { width: 80px; }
-        .sidebar.minimized .nav-text, .sidebar.minimized .profile-full { display: none; }
-        .sidebar.minimized .nav-link { justify-content: center; padding: 12px; margin: 4px 8px; }
+        .sidebar.minimized .nav-text, .sidebar.minimized .profile-details { display: none; }
+        .sidebar.minimized .nav-link { justify-content: center; margin: 4px 8px; }
         
         .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; transition: 0.2s; cursor: pointer; margin: 4px 12px; font-size: 13px; }
         .nav-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
         
-        .chart-container { height: 200px; position: relative; }
+        .storage-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; transition: 0.3s; }
+        .storage-card:hover { border-color: var(--accent); }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="app" class="flex h-full">
+    <div id="login-gate">
+        <div class="w-[380px] p-10 glass-panel rounded-[32px] text-center border-blue-500/20 border">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-extrabold mb-6 shadow-xl shadow-blue-600/30">Z</div>
+            <h2 class="text-xl font-extrabold text-white mb-6">Zonix Access</h2>
+            <input type="password" id="access-pass" class="input-box mb-4 text-center" placeholder="Security Token">
+            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all uppercase text-xs tracking-widest">Connect Node</button>
+            <p id="auth-error" class="text-red-500 text-[10px] mt-4 opacity-0 font-bold uppercase">Invalid Token</p>
+        </div>
+    </div>
+
+    <div id="app" class="hidden flex h-full">
         <aside id="sidebar" class="sidebar flex flex-col">
             <div class="p-6 flex items-center justify-between">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex-shrink-0 flex items-center justify-center text-white font-bold">Z</div>
                     <span class="nav-text text-white font-black text-lg">ZONIX</span>
                 </div>
-                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white transition-colors">
-                    <i id="toggle-icon" class="fa-solid fa-chevron-left"></i>
-                </button>
+                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
             </div>
 
-            <nav class="flex-1 mt-4">
+            <nav class="flex-1">
                 <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree"></i> <span class="nav-text">Unified Files</span></div>
-                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-area"></i> <span class="nav-text">Network Monitor</span></div>
+                <div onclick="tab('cloud')" id="nav-cloud" class="nav-link"><i class="fa-solid fa-cloud"></i> <span class="nav-text">Cloud Monitor</span></div>
+                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-area"></i> <span class="nav-text">Network Traffic</span></div>
                 <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear"></i> <span class="nav-text">Sub-Users</span></div>
                 <div onclick="tab('profile')" id="nav-profile" class="nav-link"><i class="fa-solid fa-user-pen"></i> <span class="nav-text">Profile Editor</span></div>
             </nav>
@@ -51,9 +67,9 @@
             <div class="p-4 border-t border-white/5">
                 <div class="glass-panel rounded-xl p-3 flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-xs">MR</div>
-                    <div class="profile-full overflow-hidden">
+                    <div class="profile-details overflow-hidden">
                         <p id="display-name" class="text-[11px] text-white font-bold truncate">Mohamed Rashed</p>
-                        <span class="text-[8px] font-black uppercase text-blue-500">ADMIN</span>
+                        <span id="user-perm-badge" class="text-[8px] font-black uppercase text-blue-500">ADMIN</span>
                     </div>
                 </div>
             </div>
@@ -66,166 +82,143 @@
                     <h2 class="text-3xl font-extrabold text-white">Unified Storage</h2>
                     <button id="ms-init" class="bg-white text-black px-6 py-2 rounded-lg font-bold text-[10px] uppercase">Link OneDrive</button>
                 </div>
-                <div id="file-list" class="space-y-3"><p class="text-gray-600 italic">No node linked.</p></div>
+                <div id="file-list" class="space-y-2"></div>
             </section>
 
-            <section id="view-network" class="hidden space-y-8">
-                <h2 class="text-3xl font-extrabold text-white">Network Traffic</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-blue-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase">Incoming Rate</p>
-                        <h3 id="net-in" class="text-2xl font-black text-white mt-2">0.00 KB/s</h3>
+            <section id="view-cloud" class="hidden space-y-8">
+                <h2 class="text-3xl font-extrabold text-white">Cloud Health</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="storage-card">
+                        <div class="flex justify-between items-start mb-6">
+                            <i class="fa-brands fa-google-drive text-2xl text-emerald-500"></i>
+                            <span class="text-[9px] font-bold text-gray-500 uppercase">Google Drive</span>
+                        </div>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-2"><div class="bg-emerald-500 h-full w-[12%]"></div></div>
+                        <p class="text-[10px] text-gray-400 font-bold">1.8GB / 15GB Used</p>
                     </div>
-                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-emerald-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase">Outgoing Rate</p>
-                        <h3 id="net-out" class="text-2xl font-black text-white mt-2">0.00 KB/s</h3>
-                    </div>
-                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-purple-500">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase">Active Packets</p>
-                        <h3 id="net-packets" class="text-2xl font-black text-white mt-2">1,244</h3>
+                    <div class="storage-card">
+                        <div class="flex justify-between items-start mb-6">
+                            <i class="fa-solid fa-cloud text-2xl text-blue-500"></i>
+                            <span class="text-[9px] font-bold text-gray-500 uppercase">Degoo Storage</span>
+                        </div>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-2"><div class="bg-blue-500 h-full w-[88%]"></div></div>
+                        <p class="text-[10px] text-gray-400 font-bold">901GB / 1024GB Used</p>
                     </div>
                 </div>
-                <div class="glass-panel p-6 rounded-2xl chart-container">
-                    <canvas id="networkChart"></canvas>
-                </div>
+            </section>
+
+            <section id="view-network" class="hidden space-y-6">
+                <h2 class="text-3xl font-extrabold text-white">Network Monitor</h2>
+                <div class="glass-panel p-6 rounded-2xl h-[300px]"><canvas id="netChart"></canvas></div>
             </section>
 
             <section id="view-users" class="hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-3xl font-extrabold text-white">User Access List</h2>
-                    <button class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-[10px] uppercase hover:bg-blue-500">+ Add Node User</button>
-                </div>
+                <h2 class="text-3xl font-extrabold text-white">Sub-User Nodes</h2>
                 <div class="glass-panel rounded-2xl overflow-hidden">
                     <table class="w-full text-left">
                         <thead class="bg-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            <tr><th class="p-5">User Address / ID</th><th class="p-5">Privileges</th><th class="p-5">Status</th></tr>
+                            <tr><th class="p-5">User Address</th><th class="p-5">Password Link</th><th class="p-5">Privileges</th></tr>
                         </thead>
-                        <tbody class="text-sm">
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-USR-8821 (Hitome)</td><td class="p-5"><span class="px-2 py-1 rounded bg-red-500/10 text-red-500 text-[9px] font-black uppercase">Owner</span></td><td class="p-5 text-emerald-500">Online</td></tr>
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-USR-4432 (Zlacer)</td><td class="p-5"><span class="px-2 py-1 rounded bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase">Editor</span></td><td class="p-5 text-gray-500">Idle</td></tr>
+                        <tbody class="text-xs">
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-ROOT-454</td><td class="p-5 text-gray-500">zonix2026</td><td class="p-5 text-red-500 font-black">ADMIN</td></tr>
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-EDIT-772</td><td class="p-5 text-gray-500">smr2010000</td><td class="p-5 text-blue-500 font-black">EDITOR</td></tr>
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-GUEST-01</td><td class="p-5 text-gray-500">guest123</td><td class="p-5 text-gray-500 font-black">VIEWER</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <section id="view-profile" class="hidden space-y-6">
-                <h2 class="text-3xl font-extrabold text-white">Profile Settings</h2>
-                <div class="glass-panel p-8 rounded-3xl max-w-xl">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Display Name</label>
-                            <input type="text" id="edit-name" value="Mohamed Rashed" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-blue-500 outline-none transition-all">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">System Avatar</label>
-                            <div class="flex gap-4">
-                                <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-2xl font-bold">MR</div>
-                                <button class="text-[10px] text-blue-400 font-bold uppercase underline">Upload New</button>
-                            </div>
-                        </div>
-                        <button onclick="saveProfile()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold mt-6 hover:bg-blue-500 transition-all">Save Changes</button>
-                    </div>
+            <section id="view-profile" class="hidden">
+                <h2 class="text-3xl font-extrabold text-white mb-8">Edit Profile</h2>
+                <div class="glass-panel p-8 rounded-3xl max-w-lg">
+                    <input type="text" id="edit-name" value="Mohamed Rashed" class="input-box mb-4">
+                    <button onclick="saveProfile()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold">Apply Changes</button>
                 </div>
             </section>
-
         </main>
     </div>
 
     <script>
-        // SIDEBAR MINIMIZER
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const icon = document.getElementById('toggle-icon');
-            sidebar.classList.toggle('minimized');
-            icon.classList.toggle('fa-chevron-left');
-            icon.classList.toggle('fa-chevron-right');
+        // PERMISSION SETTINGS
+        const PERMS = {
+            "zonix2026": { rank: "ADMIN", color: "text-red-500" },
+            "smr2010000": { rank: "EDITOR", color: "text-blue-500" },
+            "guest123": { rank: "VIEWER", color: "text-gray-500" }
+        };
+        let userRank = "";
+
+        function authorize() {
+            const pass = document.getElementById('access-pass').value;
+            if(PERMS[pass]) {
+                userRank = PERMS[pass].rank;
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                document.getElementById('user-perm-badge').innerText = userRank;
+                document.getElementById('user-perm-badge').className = `text-[8px] font-black uppercase ${PERMS[pass].color}`;
+            } else {
+                document.getElementById('auth-error').style.opacity = "1";
+            }
         }
 
-        // TABS
+        // SIDEBAR & TABS
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('minimized');
+            document.getElementById('toggle-icon').classList.toggle('fa-chevron-left');
+            document.getElementById('toggle-icon').classList.toggle('fa-chevron-right');
+        }
+
         function tab(name) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById('view-'+name).classList.remove('hidden');
             document.getElementById('nav-'+name).classList.add('active');
-            if (name === 'network') initNetworkChart();
+            if(name === 'network') initChart();
         }
 
-        // PROFILE EDITOR
+        // PROFILE
         function saveProfile() {
-            const newName = document.getElementById('edit-name').value;
-            document.getElementById('display-name').innerText = newName;
-            alert("System Profile Updated.");
+            document.getElementById('display-name').innerText = document.getElementById('edit-name').value;
+            alert("Settings Saved.");
         }
 
-        // NETWORK MONITORING LOGIC
-        let netChart;
-        function initNetworkChart() {
-            if (netChart) return;
-            const ctx = document.getElementById('networkChart').getContext('2d');
-            netChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array(20).fill(''),
-                    datasets: [{
-                        label: 'Network Load',
-                        data: Array(20).fill(0),
-                        borderColor: '#3b82f6',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)'
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    scales: { x: { display: false }, y: { display: false } },
-                    plugins: { legend: { display: false } } 
-                }
-            });
-
-            setInterval(() => {
-                const val = Math.floor(Math.random() * 100);
-                netChart.data.datasets[0].data.shift();
-                netChart.data.datasets[0].data.push(val);
-                netChart.update('none');
-                document.getElementById('net-in').innerText = (val * 0.82).toFixed(2) + " KB/s";
-                document.getElementById('net-out').innerText = (val * 0.45).toFixed(2) + " KB/s";
-            }, 1000);
-        }
-
-        // MSAL (Fixing the Handshake Error)
+        // MSAL (Fixing the Handshake)
         const client = new msal.PublicClientApplication({
-            auth: { 
-                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
-                authority: "https://login.microsoftonline.com/common",
-                redirectUri: window.location.origin + window.location.pathname
-            }
+            auth: { clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", authority: "https://login.microsoftonline.com/common" }
         });
 
         document.getElementById('ms-init').addEventListener('click', async () => {
             try {
-                const res = await client.loginPopup({ scopes: ["Files.Read.All", "Sites.Read.All"], prompt: "select_account" });
-                renderFiles(res.accessToken);
-            } catch (err) { console.error(err); alert("Handshake Error: Check your Browser Settings (Popups)"); }
+                const res = await client.loginPopup({ scopes: ["Files.Read.All", "Sites.Read.All"] });
+                fetchFiles(res.accessToken);
+            } catch (err) { alert("Check popups/handshake!"); }
         });
 
-        async function renderFiles(token) {
+        async function fetchFiles(token) {
             const list = document.getElementById('file-list');
-            list.innerHTML = '<div class="text-blue-500 font-bold animate-pulse">Syncing Shared Volume...</div>';
+            list.innerHTML = '<div class="p-10 animate-pulse text-blue-500 font-bold">Syncing Nodes...</div>';
             try {
-                const sReq = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", { headers: { Authorization: `Bearer ${token}` } });
-                const sData = await sReq.json();
+                const req = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", { headers: { Authorization: `Bearer ${token}` } });
+                const data = await req.json();
                 let html = '';
-                sData.value.forEach(item => {
-                    html += `<div class="glass-panel p-4 rounded-xl flex justify-between items-center">
-                        <div class="flex items-center gap-4"><i class="fa-solid fa-folder text-yellow-500"></i>
-                        <span class="text-white text-sm font-bold">${item.name || item.remoteItem?.name}</span></div>
-                        <span class="text-[9px] text-blue-500 font-black">SHARED NODE</span>
+                data.value.forEach(item => {
+                    const canEdit = userRank !== "VIEWER" ? '<button class="text-[10px] text-blue-500 font-bold uppercase">Manage</button>' : '';
+                    html += `<div class="storage-card flex justify-between items-center">
+                        <div class="flex items-center gap-4"><i class="fa-solid fa-folder text-yellow-500"></i><span class="text-sm font-bold">${item.name || item.remoteItem.name}</span></div>
+                        ${canEdit}
                     </div>`;
                 });
-                list.innerHTML = html || '<p class="text-gray-500">No shared nodes found.</p>';
-            } catch (e) { list.innerHTML = '<p class="text-red-500 font-bold">API Access Error.</p>'; }
+                list.innerHTML = html || '<p class="text-gray-600 italic p-10 text-center">Empty shared volume.</p>';
+            } catch (e) { list.innerHTML = '<p class="text-red-500">Handshake Failed.</p>'; }
+        }
+
+        // CHART
+        function initChart() {
+            const ctx = document.getElementById('netChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels: [1,2,3,4,5], datasets: [{ label: 'Traffic', data: [10, 25, 12, 35, 20], borderColor: '#3b82f6', tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
         }
     </script>
 </body>
