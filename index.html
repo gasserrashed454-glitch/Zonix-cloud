@@ -3,173 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zonix Cloud | Secure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-    <title>Zonix | Command Center</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        #login-gate { position: fixed; inset: 0; z-index: 100; background: #050505; display: flex; align-items: center; justify-content: center; }
+        .neon-blue { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+    </style>
 </head>
-<body class="bg-[#050505] text-gray-200 font-sans selection:bg-blue-500/30">
+<body>
 
-    <nav class="border-b border-white/5 p-4 flex justify-between items-center backdrop-blur-md sticky top-0 z-50">
-        <div class="flex items-center space-x-4">
-            <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.3)]">
-                <span class="text-white font-black text-2xl italic">Z</span>
-            </div>
-            <div>
-                <h1 class="text-white font-bold tracking-tighter text-lg leading-none">ZONIX <span class="text-blue-500">CLOUD</span></h1>
-                <span class="text-[9px] text-gray-500 uppercase tracking-[0.2em]">Private Dashboard</span>
-            </div>
+    <div id="login-gate">
+        <div class="w-full max-w-sm p-8 text-center">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center font-bold text-white text-3xl neon-blue mb-6">Z</div>
+            <h2 class="text-xl font-black uppercase tracking-widest text-white mb-8">System Locked</h2>
+            <input type="password" id="ceo-pass" placeholder="ENTER ACCESS KEY" 
+                   class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center text-sm tracking-[0.3em] text-blue-400 focus:outline-none mb-4">
+            <button onclick="checkAccess()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest transition-all">
+                Authorize
+            </button>
+            <p id="error-msg" class="text-red-500 text-[10px] mt-4 opacity-0 uppercase font-bold">Invalid Key</p>
         </div>
-        <button onclick="loginOneDrive()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all">
-            Link OneDrive
-        </button>
-    </nav>
+    </div>
 
-    <main class="p-6 max-w-5xl mx-auto">
+    <div id="main-dashboard" class="hidden p-6 md:p-12">
+        <div class="flex justify-between items-center mb-12">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xl neon-blue">Z</div>
+                <h1 class="text-2xl font-black text-white uppercase">Zonix <span class="text-blue-500">Cloud</span></h1>
+            </div>
+            <button id="connectBtn" onclick="connectOneDrive()" class="border border-blue-500/30 text-blue-400 px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                Connect
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-blue-400 font-bold uppercase text-xs tracking-widest">Active Drive</h3>
-                    <span id="od-status" class="text-[10px] text-gray-500">Offline</span>
+            <div class="glass p-8 rounded-3xl relative">
+                <h2 class="text-xl font-bold text-white mb-1">OneDrive</h2>
+                <div class="flex justify-between items-end">
+                    <span class="text-[10px] text-blue-500 font-mono">100 GB CAPACITY</span>
+                    <span id="od-status" class="text-[10px] text-gray-600 uppercase">Offline</span>
                 </div>
-                <div class="text-3xl font-bold text-white mb-1">OneDrive</div>
-                <div class="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
-                    <div id="od-progress" class="bg-blue-500 h-full w-0 transition-all duration-1000"></div>
+                <div class="w-full bg-white/5 h-1 rounded-full mt-6 overflow-hidden">
+                    <div id="progress" class="bg-blue-500 h-full w-0 transition-all duration-1000"></div>
                 </div>
             </div>
-
-            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-yellow-500 font-bold uppercase text-xs tracking-widest">Massive Storage</h3>
-                    <span class="text-[10px] text-gray-500">20 GB Pending</span>
-                </div>
-                <div class="text-3xl font-bold text-white mb-1">Degoo</div>
-                <div class="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
-                    <div class="bg-yellow-500 h-full w-[10%] opacity-20"></div>
-                </div>
+            <div class="glass p-8 rounded-3xl relative opacity-40">
+                <h2 class="text-xl font-bold text-white mb-1">Degoo</h2>
+                <span class="text-[10px] text-gray-600 uppercase">Standby</span>
             </div>
         </div>
 
-        <div class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden min-h-[300px]">
-            <div class="p-4 border-b border-white/5 bg-white/[0.02] flex justify-between">
-                <span class="text-xs font-bold uppercase text-gray-400">Secure File Explorer</span>
-            </div>
-            <div id="file-list" class="p-10 text-center text-gray-500 text-sm">
-                Awaiting Connection...
+        <div class="glass rounded-3xl overflow-hidden min-h-[400px]">
+            <div id="fileList" class="flex flex-col items-center justify-center p-12 text-gray-700">
+                <p class="text-[10px] uppercase tracking-widest font-bold">Awaiting Data...</p>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
+        // 1. PIN Check
+        function checkAccess() {
+            const pass = document.getElementById('ceo-pass').value;
+            if (pass === "zonix2026") {
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+            } else {
+                document.getElementById('error-msg').style.opacity = "1";
+            }
+        }
+
+        // 2. Microsoft Config
         const msalConfig = {
             auth: {
-                clientId: "65a01bbc-e3d6-4c97-98f6-0393a6a09610", 
-                authority: "https://login.microsoftonline.com/common"
+                clientId: "1c7b8cf1-f3e7-4708-88df-7a82f6869783",
+                authority: "https://login.microsoftonline.com/consumers",
+                // FIXED REDIRECT URI:
+                redirectUri: "https://gasserrashed454-glitch.github.io/Zonix-cloud/"
             }
         };
 
         const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-        async function loginOneDrive() {
+        async function connectOneDrive() {
             try {
                 const loginResponse = await msalInstance.loginPopup({
                     scopes: ["user.read", "Files.Read.All"]
                 });
-                document.getElementById('od-status').innerText = "ONLINE";
+                document.getElementById('od-status').innerText = "Online";
                 document.getElementById('od-status').className = "text-[10px] text-green-500 font-bold";
-                document.getElementById('od-progress').style.width = "20%";
-                fetchFiles(loginResponse.accessToken);
+                document.getElementById('progress').style.width = "50%";
+                getFiles(loginResponse.accessToken);
             } catch (err) {
                 console.error(err);
-                alert("Please check your Redirect URI in Azure Settings!");
+                alert("Check Azure Redirect URI Settings!");
             }
         }
 
-        async function fetchFiles(token) {
-            const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
+        async function getFiles(token) {
+            const response = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const data = await res.json();
-            const list = document.getElementById('file-list');
-            list.innerHTML = "";
-            list.className = "grid grid-cols-1 divide-y divide-white/5";
-            
-            data.value.forEach(file => {
-                list.innerHTML += `
-                    <div class="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
-                        <span class="text-sm font-medium">${file.name}</span>
-                        <span class="text-[10px] text-gray-500 uppercase tracking-tighter">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                    </div>
-                `;
-            });
-        }
-    </script>
-</body>
-</html>                </div>
-            </div>
-
-            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-yellow-500 font-bold uppercase text-xs tracking-widest">Massive Storage</h3>
-                    <span class="text-[10px] text-gray-500">20 GB Pending</span>
-                </div>
-                <div class="text-3xl font-bold text-white mb-1">Degoo</div>
-                <div class="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden">
-                    <div class="bg-yellow-500 h-full w-[10%] opacity-20"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden min-h-[300px]">
-            <div class="p-4 border-b border-white/5 bg-white/[0.02] flex justify-between">
-                <span class="text-xs font-bold uppercase text-gray-400">Secure File Explorer</span>
-            </div>
-            <div id="file-list" class="p-10 text-center text-gray-500 text-sm">
-                Awaiting Connection...
-            </div>
-        </div>
-    </main>
-
-    <script>
-        const msalConfig = {
-            auth: {
-                clientId: "65a01bbc-e3d6-4c97-98f6-0393a6a09610", 
-                authority: "https://login.microsoftonline.com/common"
-            }
-        };
-
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-        async function loginOneDrive() {
-            try {
-                const loginResponse = await msalInstance.loginPopup({
-                    scopes: ["user.read", "Files.Read.All"]
-                });
-                document.getElementById('od-status').innerText = "ONLINE";
-                document.getElementById('od-status').className = "text-[10px] text-green-500 font-bold";
-                document.getElementById('od-progress').style.width = "20%";
-                fetchFiles(loginResponse.accessToken);
-            } catch (err) {
-                console.error(err);
-                alert("Please check your Redirect URI in Azure Settings!");
-            }
+            const data = await response.json();
+            renderFiles(data.value);
         }
 
-        async function fetchFiles(token) {
-            const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await res.json();
-            const list = document.getElementById('file-list');
-            list.innerHTML = "";
-            list.className = "grid grid-cols-1 divide-y divide-white/5";
-            
-            data.value.forEach(file => {
-                list.innerHTML += `
-                    <div class="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
-                        <span class="text-sm font-medium">${file.name}</span>
-                        <span class="text-[10px] text-gray-500 uppercase tracking-tighter">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                    </div>
-                `;
+        function renderFiles(files) {
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            list.className = "p-6 grid grid-cols-1 md:grid-cols-2 gap-3";
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = "flex items-center gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5";
+                item.innerHTML = `<i class="fa-solid ${file.folder ? 'fa-folder text-blue-500' : 'fa-file text-gray-500'}"></i>
+                                  <p class="text-xs text-gray-300">${file.name}</p>`;
+                list.appendChild(item);
             });
         }
     </script>
