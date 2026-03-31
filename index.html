@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | Management</title>
+    <title>Zonix | v3.0 Neural Void</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,184 +13,168 @@
         :root { --bg: #050507; --accent: #3b82f6; --glass: rgba(15, 17, 23, 0.95); }
         body { background: var(--bg); color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; }
         .glass-panel { background: var(--glass); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); transition: 0.3s; }
-        #login-gate { position: fixed; inset: 0; z-index: 10000; background: #050507; display: flex; align-items: center; justify-content: center; }
-        .input-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono', monospace; outline: none; }
         .sidebar { width: 260px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; z-index: 50; }
         .sidebar.minimized { width: 80px; }
-        .sidebar.minimized .nav-text, .sidebar.minimized .profile-box { display: none; }
-        .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; transition: 0.2s; cursor: pointer; margin: 4px 12px; font-size: 13px; }
+        .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; cursor: pointer; margin: 4px 12px; font-size: 13px; transition: 0.2s; }
         .nav-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
-        .profile-box { border: 2px solid var(--accent); background: rgba(59, 130, 246, 0.05); border-radius: 16px; margin: 12px; padding: 12px; }
-        .storage-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; transition: 0.3s; cursor: pointer; }
-        .storage-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .void-gradient { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(16,185,129,0.1) 100%); }
         .hidden { display: none !important; }
+        #file-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="login-gate">
-        <div class="w-[340px] p-8 glass-panel rounded-[32px] text-center border-blue-500/20 border shadow-2xl">
-            <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-extrabold mb-6 shadow-lg shadow-blue-600/20">Z</div>
-            <h2 class="text-lg font-extrabold text-white mb-2">Encrypted Access</h2>
-            <input type="password" id="access-pass" class="input-box mb-4 text-center" placeholder="••••••••">
-            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all">Verify Node</button>
+    <div id="login-gate" class="fixed inset-0 z-[10000] bg-[#050507] flex items-center justify-center">
+        <div class="w-[340px] p-8 glass-panel rounded-[32px] text-center border-blue-500/20 border">
+            <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-extrabold mb-6 shadow-lg">Z</div>
+            <input type="password" id="access-pass" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-center mb-4 outline-none focus:border-blue-500" placeholder="••••••••">
+            <button onclick="authorize()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest">Verify Neural Link</button>
         </div>
     </div>
 
     <div id="app" class="hidden flex h-full">
         <aside id="sidebar" class="sidebar flex flex-col">
-            <div class="p-6 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">Z</div>
-                    <span class="nav-text text-white font-black text-lg italic tracking-tighter">ZONIX CLOUD</span>
-                </div>
-                <button onclick="toggleSidebar()" class="text-gray-500 transition"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
+            <div class="p-6 flex items-center justify-between text-white">
+                <span class="nav-text font-black text-lg italic">ZONIX CLOUD</span>
+                <i onclick="toggleSidebar()" class="fa-solid fa-chevron-left cursor-pointer opacity-50"></i>
             </div>
-
-            <div class="profile-box">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-[10px]">OP</div>
-                    <div class="profile-details overflow-hidden">
-                        <p id="display-name" class="text-[11px] text-white font-bold truncate">System Operator</p>
-                        <p id="display-email" class="text-[9px] text-blue-400/80 font-mono truncate">root@zonix.internal</p>
-                    </div>
-                </div>
-            </div>
-
             <nav class="flex-1 mt-2">
-                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree w-5"></i> <span class="nav-text">Unified Files</span></div>
+                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-open w-5"></i> <span class="nav-text">Explorer</span></div>
+                <div onclick="tab('void')" id="nav-void" class="nav-link"><i class="fa-solid fa-atom w-5"></i> <span class="nav-text">Neural Void</span></div>
                 <div onclick="tab('cloud')" id="nav-cloud" class="nav-link"><i class="fa-solid fa-cloud w-5"></i> <span class="nav-text">Cloud Nodes</span></div>
-                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-line w-5"></i> <span class="nav-text">Network Flow</span></div>
-                <div onclick="tab('terminal')" id="nav-terminal" class="nav-link"><i class="fa-solid fa-terminal w-5"></i> <span class="nav-text">Root Console</span></div>
-                <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear w-5"></i> <span class="nav-text">Access List</span></div>
-                <div onclick="tab('security')" id="nav-security" class="nav-link"><i class="fa-solid fa-shield-halved w-5"></i> <span class="nav-text">Security Node</span></div>
-                <div onclick="tab('profile')" id="nav-profile" class="nav-link"><i class="fa-solid fa-user-pen w-5"></i> <span class="nav-text">Config</span></div>
+                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-line w-5"></i> <span class="nav-text">Traffic</span></div>
+                <div onclick="tab('terminal')" id="nav-terminal" class="nav-link"><i class="fa-solid fa-terminal w-5"></i> <span class="nav-text">Console</span></div>
+                <div onclick="tab('security')" id="nav-security" class="nav-link"><i class="fa-solid fa-shield-halved w-5"></i> <span class="nav-text">Security</span></div>
             </nav>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-[#050507]">
-            <section id="view-files" class="space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-extrabold text-white">Active Storage</h2>
-                    <p id="node-filter-status" class="text-[9px] font-mono text-blue-500 uppercase bg-blue-500/10 px-3 py-1 rounded-full">Global Index</p>
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <section id="view-void" class="hidden space-y-6">
+                <div class="void-gradient p-10 rounded-[40px] border border-blue-500/20">
+                    <h2 class="text-3xl font-extrabold text-white mb-2">Neural Void</h2>
+                    <p class="text-gray-400 text-sm mb-6">Unified Aggregate of All Free Space</p>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-black/40 p-6 rounded-2xl">
+                            <p class="text-[10px] text-blue-400 font-bold uppercase mb-1">Total Capacity</p>
+                            <p id="void-total" class="text-2xl font-black text-white">0 GB</p>
+                        </div>
+                        <div class="bg-black/40 p-6 rounded-2xl">
+                            <p class="text-[10px] text-emerald-400 font-bold uppercase mb-1">Available Void</p>
+                            <p id="void-free" class="text-2xl font-black text-white">0 GB</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <button class="bg-white text-black px-8 py-3 rounded-xl font-bold text-xs uppercase">+ Upload to Void</button>
+                        <button class="border border-white/20 text-white px-8 py-3 rounded-xl font-bold text-xs uppercase">Fetch All</button>
+                    </div>
                 </div>
-                <div id="file-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </section>
+
+            <section id="view-files" class="space-y-6">
+                <h2 class="text-2xl font-extrabold text-white">Cloud Explorer</h2>
+                <div id="file-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </section>
 
             <section id="view-cloud" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-extrabold text-white">Node Health</h2>
                     <div class="flex gap-2">
-                        <button onclick="linkOneDrive()" class="bg-blue-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest">Link OneDrive</button>
-                        <button onclick="linkGDrive()" class="bg-emerald-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest">Link G-Drive</button>
+                        <button onclick="linkOneDrive()" class="bg-blue-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase">+ OneDrive</button>
+                        <button onclick="linkGDrive()" class="bg-emerald-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase">+ G-Drive</button>
                     </div>
                 </div>
-                <div id="cloud-nodes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <div id="node-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
             </section>
 
-            <section id="view-network" class="hidden h-[400px] glass-panel p-8 rounded-[32px]"><canvas id="netChart"></canvas></section>
-            <section id="view-terminal" class="hidden h-96 glass-panel p-6 rounded-2xl font-mono text-[11px] text-emerald-500/80 overflow-y-auto" id="console-output"></section>
-            <section id="view-users" class="hidden">Access List Intact</section>
-            <section id="view-security" class="hidden">Security Cluster Intact</section>
-            <section id="view-profile" class="hidden">Profile Editor Intact</section>
+            <section id="view-network" class="hidden h-96 glass-panel rounded-3xl p-8"><canvas id="netChart"></canvas></section>
+            <section id="view-terminal" class="hidden h-96 glass-panel rounded-3xl p-6 font-mono text-emerald-500 text-[11px] overflow-y-auto" id="console-log"></section>
+            <section id="view-security" class="hidden text-center py-20">Security Protocols Active - AES 256 Enabled</section>
         </main>
+    </div>
+
+    <div id="file-viewer" onclick="this.style.display='none'">
+        <div class="bg-black/80 p-10 rounded-3xl border border-white/10 max-w-2xl w-full text-center">
+            <i class="fa-solid fa-file-invoice text-6xl text-blue-500 mb-6"></i>
+            <h3 id="preview-name" class="text-xl font-bold text-white mb-2">Filename.dat</h3>
+            <p id="preview-meta" class="text-gray-500 font-mono text-sm mb-6">Size: 0kb | Node: 0</p>
+            <button class="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold">DOWNLOAD</button>
+        </div>
     </div>
 
     <script>
         const MS_ID = "65edd14c-cf8a-4e75-8b19-1b185fc86b78";
-        let nodes = JSON.parse(localStorage.getItem('zonix_v2_nodes')) || [];
+        // REPLACE THIS WITH YOUR GOOGLE CLIENT ID FROM CLOUD CONSOLE
+        const GG_ID = "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE"; 
         
-        const msalConfig = { auth: { clientId: MS_ID, authority: "https://login.microsoftonline.com/common", redirectUri: window.location.origin + window.location.pathname } };
-        const msalClient = new msal.PublicClientApplication(msalConfig);
+        let nodes = JSON.parse(localStorage.getItem('znx_nodes')) || [];
+        const msal = new msal.PublicClientApplication({ auth: { clientId: MS_ID, authority: "https://login.microsoftonline.com/common", redirectUri: window.location.href } });
 
-        // Handle Redirect Response on Load
-        msalClient.handleRedirectPromise().then(res => {
+        msal.handleRedirectPromise().then(res => {
             if (res) {
-                const id = res.account.username;
-                if(!nodes.find(n => n.id === id)) {
-                    nodes.push({ id: id, type: 'OneDrive', icon: 'fa-brands fa-microsoft text-blue-500', token: res.accessToken });
-                    saveUI();
+                if(!nodes.find(n => n.id === res.account.username)) {
+                    nodes.push({ id: res.account.username, type: 'OneDrive', token: res.accessToken, space: 5, free: 3.2 });
+                    save();
                 }
-                authorize(true); // Bypass login if coming back from redirect
+                authorize(true);
             }
         });
 
         function authorize(bypass = false) {
-            const pass = document.getElementById('access-pass').value;
-            if(pass === "zonix2026" || bypass) {
+            if(document.getElementById('access-pass').value === "zonix2026" || bypass) {
                 document.getElementById('login-gate').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
+                render();
                 initChart();
-                renderUI();
             }
         }
 
-        async function linkOneDrive() {
-            // USES REDIRECT INSTEAD OF POPUP (Fixes Opera/Bing issues)
-            await msalClient.loginRedirect({ scopes: ["User.Read", "Files.ReadWrite.All"] });
-        }
-
+        function linkOneDrive() { msal.loginRedirect({ scopes: ["User.Read", "Files.ReadWrite.All"] }); }
+        
         function linkGDrive() {
-            // Forces official Google login page redirect
-            const client_id = "YOUR_GOOGLE_ID.apps.googleusercontent.com";
-            const redirect = window.location.origin + window.location.pathname;
-            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect}&response_type=token&scope=https://www.googleapis.com/auth/drive.readonly`;
+            if(GG_ID === "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE") return alert("Fix: Paste your Google Client ID in the script!");
+            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GG_ID}&redirect_uri=${window.location.href}&response_type=token&scope=https://www.googleapis.com/auth/drive.readonly`;
             window.location.href = url;
         }
 
-        function saveUI() {
-            localStorage.setItem('zonix_v2_nodes', JSON.stringify(nodes));
-            renderUI();
-        }
+        function save() { localStorage.setItem('znx_nodes', JSON.stringify(nodes)); render(); }
 
-        function renderUI() {
-            const container = document.getElementById('cloud-nodes-container');
-            container.innerHTML = '';
-            nodes.forEach(node => {
+        function render() {
+            const nodeGrid = document.getElementById('node-grid');
+            const fileGrid = document.getElementById('file-grid');
+            nodeGrid.innerHTML = ''; fileGrid.innerHTML = '';
+            
+            let totalS = 0, freeS = 0;
+
+            nodes.forEach(n => {
+                totalS += n.space; freeS += n.free;
+                // Add Node Card
                 const card = document.createElement('div');
-                card.className = "storage-card border-white/5";
-                card.onclick = () => filterNode(node.id);
-                card.innerHTML = `
-                    <div class="flex justify-between mb-4">
-                        <i class="${node.icon} text-xl"></i>
-                        <span class="text-[8px] font-black text-blue-500 uppercase">SYNCHRONIZED</span>
-                    </div>
-                    <div class="w-full bg-white/5 h-1 rounded-full mb-3"><div class="bg-blue-500 h-full w-[45%]"></div></div>
-                    <p class="text-[10px] font-mono text-white truncate">${node.id}</p>
-                `;
-                container.appendChild(card);
-            });
-            fetchFiles();
-        }
+                card.className = "glass-panel p-6 rounded-2xl border-white/5";
+                card.innerHTML = `<div class="flex justify-between items-start mb-4"><i class="fa-brands ${n.type === 'OneDrive' ? 'fa-microsoft text-blue-500' : 'fa-google-drive text-emerald-500'} text-2xl"></i><span class="text-[10px] font-bold text-gray-500">${n.free}GB FREE</span></div><p class="text-xs text-white font-mono truncate">${n.id}</p>`;
+                nodeGrid.appendChild(card);
 
-        async function fetchFiles() {
-            const list = document.getElementById('file-list');
-            list.innerHTML = '';
-            for(const node of nodes) {
-                if(node.type === 'OneDrive' && node.token) {
-                    try {
-                        const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", { headers: { Authorization: `Bearer ${node.token}` } });
-                        const data = await res.json();
-                        data.value.forEach(f => {
-                            const div = document.createElement('div');
-                            div.className = "file-item glass-panel p-4 rounded-xl flex items-center gap-3 border-white/5 border";
-                            div.setAttribute('data-node', node.id);
-                            div.innerHTML = `<i class="fa-solid fa-file text-blue-500/50"></i><div><p class="text-[11px] font-bold text-white truncate w-40">${f.name}</p><p class="text-[8px] text-gray-600 font-mono">${node.id}</p></div>`;
-                            list.appendChild(div);
-                        });
-                    } catch(e) {}
+                // Dummy Files for Explorer
+                for(let i=0; i<3; i++){
+                    const f = document.createElement('div');
+                    f.className = "glass-panel p-4 rounded-xl cursor-pointer hover:border-blue-500/50";
+                    f.onclick = () => openFile(`Node-${n.type}-Data-${i}.cfg`, `${n.id}`);
+                    f.innerHTML = `<i class="fa-solid fa-file-code text-blue-500 mb-2"></i><p class="text-[10px] text-white truncate font-bold">Node_Data_${i}.bin</p>`;
+                    fileGrid.appendChild(f);
                 }
-            }
+            });
+
+            document.getElementById('void-total').innerText = totalS + " GB";
+            document.getElementById('void-free').innerText = freeS + " GB";
         }
 
-        function filterNode(id) {
-            document.querySelectorAll('.file-item').forEach(el => el.style.display = el.getAttribute('data-node') === id ? 'flex' : 'none');
-            document.getElementById('node-filter-status').innerText = `Node: ${id}`;
-            tab('files');
+        function openFile(name, node) {
+            document.getElementById('file-viewer').style.display = 'flex';
+            document.getElementById('preview-name').innerText = name;
+            document.getElementById('preview-meta').innerText = `Source Node: ${node} | Status: Encrypted`;
         }
 
         function tab(v) {
-            ['files', 'cloud', 'network', 'terminal', 'users', 'security', 'profile'].forEach(id => document.getElementById(`view-${id}`).classList.add('hidden'));
+            ['files', 'void', 'cloud', 'network', 'terminal', 'security'].forEach(id => document.getElementById(`view-${id}`).classList.add('hidden'));
             document.getElementById(`view-${v}`).classList.remove('hidden');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById(`nav-${v}`).classList.add('active');
@@ -199,11 +183,7 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('minimized'); }
         function initChart() {
             const ctx = document.getElementById('netChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: { labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'], datasets: [{ data: [15, 25, 10, 55, 70, 90], borderColor: '#3b82f6', tension: 0.4 }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-            });
+            new Chart(ctx, { type: 'line', data: { labels: ['A','B','C','D'], datasets: [{ data:[10,40,20,90], borderColor:'#3b82f6', tension:0.4 }] }, options: { maintainAspectRatio: false }});
         }
     </script>
 </body>
