@@ -10,108 +10,101 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
         
-        body { 
+        /* Fixed Layout - No Zooming */
+        html, body { 
             background-color: #0d0e12; 
             color: #adb5bd; 
             font-family: 'Inter', sans-serif; 
             overflow: hidden; 
-            height: 100vh;
+            height: 100vh; 
+            position: fixed; 
+            width: 100%; 
+            margin: 0;
         }
 
-        /* Sidebar Styling inspired by CloudExa */
-        .sidebar { background-color: #15171e; border-right: 1px solid #1e2129; }
-        .sidebar-header { background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid #1e2129; }
-        .nav-item { color: #8a8d93; transition: all 0.2s; border-left: 3px solid transparent; }
+        /* CloudExa Sidebar Theme */
+        .sidebar { background-color: #15171e; border-right: 1px solid #1e2129; width: 260px; flex-shrink: 0; display: flex; flex-direction: column; }
+        .sidebar-header { background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid #1e2129; padding: 24px; }
+        .nav-item { color: #8a8d93; transition: all 0.2s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 12px; padding: 12px 24px; cursor: pointer; }
         .nav-item:hover, .nav-item.active { background: #1c1f26; color: #fff; border-left-color: #3b82f6; }
-        .nav-label { font-size: 11px; font-weight: 700; color: #495057; text-transform: uppercase; letter-spacing: 1px; padding: 20px 24px 10px; }
+        .nav-label { font-size: 11px; font-weight: 700; color: #495057; text-transform: uppercase; letter-spacing: 1px; padding: 24px 24px 8px; }
 
-        /* Main Content Styling */
-        .main-panel { background-color: #0d0e12; }
-        .stat-card { background: #15171e; border: 1px solid #1e2129; border-radius: 8px; }
-        .btn-primary { background: #3b82f6; color: white; border-radius: 4px; font-weight: 600; transition: opacity 0.2s; }
-        .btn-primary:hover { opacity: 0.9; }
-
+        /* Dashboard Elements */
+        .stat-card { background: #15171e; border: 1px solid #1e2129; border-radius: 8px; padding: 24px; }
+        .btn-primary { background: #3b82f6; color: white; border-radius: 4px; font-weight: 600; padding: 12px 24px; transition: 0.2s; cursor: pointer; border: none; width: 100%; }
+        .btn-primary:active { background: #2563eb; transform: scale(0.98); }
+        
+        /* Security Gate Overlay */
         #login-gate { background: #0d0e12; position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        input[type="password"] { background: #15171e; border: 1px solid #1e2129; border-radius: 4px; padding: 16px; color: white; width: 100%; margin-bottom: 16px; outline: none; }
+        input[type="password"]:focus { border-color: #3b82f6; }
     </style>
 </head>
 <body>
 
     <div id="login-gate">
-        <div class="w-full max-w-sm p-8">
-            <div class="text-center mb-8">
-                <div class="w-12 h-12 bg-blue-600 rounded-lg mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4">Z</div>
-                <h1 class="text-white text-xl font-semibold">Authentication Required</h1>
+        <div class="w-full max-w-sm px-6">
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-xl shadow-blue-500/20">Z</div>
+                <h1 class="text-white text-2xl font-semibold tracking-tight">Authentication Required</h1>
+                <p class="text-gray-500 text-sm mt-2">Enter security key to access node</p>
             </div>
-            <input type="password" id="ceo-pass" placeholder="Enter Access Key" class="w-full bg-[#15171e] border border-[#1e2129] rounded p-3 text-white focus:outline-none focus:border-blue-500 mb-4">
-            <button onclick="checkAccess()" class="w-full btn-primary py-3">Unlock Terminal</button>
+            <input type="password" id="ceo-pass" placeholder="••••••••" autocomplete="current-password">
+            <button id="unlock-btn" onclick="checkAccess()" ontouchstart="checkAccess()" class="btn-primary uppercase text-xs tracking-widest font-black">
+                Unlock Thermal
+            </button>
+            <p id="error-text" class="text-red-500 text-[10px] text-center mt-4 opacity-0 font-bold uppercase tracking-widest">Access Denied</p>
         </div>
     </div>
 
     <div id="main-dashboard" class="hidden flex h-full">
-        <aside class="sidebar w-64 flex flex-col">
-            <div class="sidebar-header p-6">
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Zonix-Hosting User</p>
-                <p class="text-white font-semibold">Server Administrator</p>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wider mb-1">Zonix-Cloud User</p>
+                <p class="text-white font-semibold">Server Subuser</p>
             </div>
-
-            <nav class="flex-1 py-4 overflow-y-auto">
-                <p class="nav-label">General</p>
-                <div onclick="switchNode('onedrive')" class="nav-item active flex items-center gap-3 px-6 py-3 cursor-pointer">
-                    <i class="fa-solid fa-folder w-5"></i> <span>Files (OneDrive)</span>
-                </div>
-                <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer">
-                    <i class="fa-solid fa-rocket w-5"></i> <span>Startup</span>
-                </div>
-                
+            <nav class="flex-1 overflow-y-auto">
                 <p class="nav-label">Management</p>
-                <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer">
-                    <i class="fa-solid fa-database w-5"></i> <span>Databases</span>
-                </div>
-                <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer">
-                    <i class="fa-solid fa-calendar w-5"></i> <span>Schedules</span>
-                </div>
-
-                <p class="nav-label">More</p>
-                <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer">
-                    <i class="fa-solid fa-chart-line w-5"></i> <span>Statistics</span>
-                </div>
-                <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer">
-                    <i class="fa-solid fa-wrench w-5"></i> <span>Settings</span>
-                </div>
+                <div class="nav-item active"><i class="fa-solid fa-folder"></i> <span>Files</span></div>
+                <div class="nav-item"><i class="fa-solid fa-rocket"></i> <span>Startup</span></div>
+                <div class="nav-item"><i class="fa-solid fa-network-wired"></i> <span>Network</span></div>
+                <p class="nav-label">Administration</p>
+                <div class="nav-item"><i class="fa-solid fa-users"></i> <span>Users</span></div>
+                <div class="nav-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></div>
             </nav>
         </aside>
 
-        <main class="main-panel flex-1 flex flex-col">
-            <header class="p-8 flex justify-between items-center border-bottom border-[#1e2129]">
+        <main class="flex-1 flex flex-col min-w-0">
+            <header class="p-8 flex justify-between items-center border-b border-[#1e2129]">
                 <div>
-                    <h2 class="text-2xl text-white font-semibold" id="node-title">OneDrive Node</h2>
-                    <p class="text-sm text-gray-500">Status: <span id="status-text" class="text-red-500">Offline</span></p>
+                    <h2 class="text-2xl text-white font-semibold">OneDrive Node</h2>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Status: <span id="status-text" class="text-red-500">Offline</span></p>
                 </div>
-                <button id="connectBtn" onclick="connectOneDrive()" class="btn-primary px-6 py-2 text-sm uppercase tracking-wider">
-                    Link Account
+                <button id="connectBtn" onclick="connectOneDrive()" ontouchstart="connectOneDrive()" class="btn-primary !w-auto">
+                    INITIALIZE NODE
                 </button>
             </header>
 
-            <div class="px-8 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="stat-card p-6">
-                    <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Memory Usage</p>
-                    <p class="text-xl text-white">0.00 <span class="text-gray-600 text-sm">MB / 100 GB</span></p>
+            <div class="p-8 space-y-8 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="stat-card">
+                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Memory</p>
+                        <p class="text-xl text-white">0.00 <span class="text-gray-600 text-sm">MB / 100 GB</span></p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Sync Engine</p>
+                        <p id="sync-val" class="text-xl text-white italic">Standby</p>
+                    </div>
+                    <div class="stat-card border-l-4 border-blue-600">
+                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Node ID</p>
+                        <p class="text-sm font-mono text-blue-400">AZ-65EDD14C</p>
+                    </div>
                 </div>
-                <div class="stat-card p-6">
-                    <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Sync Engine</p>
-                    <p id="sync-val" class="text-xl text-white">Inactive</p>
-                </div>
-                <div class="stat-card p-6 border-l-2 border-blue-600">
-                    <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Instance ID</p>
-                    <p class="text-sm font-mono text-blue-400">AZ-65EDD14C</p>
-                </div>
-            </div>
 
-            <div class="flex-1 px-8 pb-8">
-                <div class="w-full h-full bg-[#15171e] border border-[#1e2129] rounded-lg overflow-y-auto" id="fileList">
-                    <div class="flex flex-col items-center justify-center h-full text-gray-600">
-                        <i class="fa-solid fa-terminal text-3xl mb-4 opacity-20"></i>
-                        <p class="text-xs uppercase tracking-widest font-bold">Initialize Node Connection</p>
+                <div class="bg-[#15171e] border border-[#1e2129] rounded-lg min-h-[400px]">
+                    <div id="fileList" class="flex flex-col items-center justify-center h-[400px] text-gray-600">
+                        <i class="fa-solid fa-terminal text-4xl mb-4 opacity-10"></i>
+                        <p class="text-xs uppercase tracking-widest font-bold">Handshake Required</p>
                     </div>
                 </div>
             </div>
@@ -119,20 +112,35 @@
     </div>
 
     <script>
+        // Use an array to store allowed keys
+        const keys = ["zonix2026", "smr2010000"];
+
         function checkAccess() {
-            const pass = document.getElementById('ceo-pass').value.toLowerCase();
-            if (["zonix2026", "smr2010000"].includes(pass)) {
-                document.getElementById('login-gate').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
+            const input = document.getElementById('ceo-pass').value.toLowerCase().trim();
+            const gate = document.getElementById('login-gate');
+            const dash = document.getElementById('main-dashboard');
+            const error = document.getElementById('error-text');
+
+            if (keys.includes(input)) {
+                gate.style.opacity = '0';
+                setTimeout(() => {
+                    gate.classList.add('hidden');
+                    dash.classList.remove('hidden');
+                }, 400);
+            } else {
+                error.style.opacity = '1';
+                setTimeout(() => { error.style.opacity = '0'; }, 2000);
             }
         }
 
+        // MSAL Configuration with your specific Client ID
         const msalConfig = {
             auth: {
-                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", // NEW CLIENT ID
+                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
                 authority: "https://login.microsoftonline.com/common",
                 redirectUri: "https://gasserrashed454-glitch.github.io/Zonix-cloud/"
-            }
+            },
+            cache: { cacheLocation: "localStorage", storeAuthStateInCookie: true }
         };
 
         const msalInstance = new msal.PublicClientApplication(msalConfig);
@@ -144,38 +152,35 @@
                     prompt: "select_account"
                 });
                 
-                document.getElementById('status-text').innerText = "Online";
+                document.getElementById('status-text').innerText = "ONLINE";
                 document.getElementById('status-text').className = "text-green-500";
-                document.getElementById('sync-val').innerText = "Live";
-                document.getElementById('connectBtn').innerText = "Linked";
-                document.getElementById('connectBtn').classList.add('opacity-50');
+                document.getElementById('sync-val').innerText = "ACTIVE";
+                document.getElementById('connectBtn').innerText = "NODE LINKED";
+                document.getElementById('connectBtn').style.opacity = "0.5";
                 
-                getFiles(loginResponse.accessToken);
+                fetchFiles(loginResponse.accessToken);
             } catch (err) {
                 console.error(err);
-                alert("Auth Failure! Double-check your Azure SPA Redirect URI settings.");
+                alert("Auth Failure: Ensure Azure 'Implicit Grant' (Access & ID tokens) is enabled.");
             }
         }
 
-        async function getFiles(token) {
-            const response = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
+        async function fetchFiles(token) {
+            const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            const data = await response.json();
-            renderFiles(data.value);
-        }
-
-        function renderFiles(files) {
+            const data = await res.json();
             const list = document.getElementById('fileList');
-            list.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-1 p-2"></div>';
-            const container = list.firstChild;
+            list.innerHTML = '';
+            list.className = "divide-y divide-[#1e2129]";
             
-            files.forEach(file => {
-                const item = document.createElement('div');
-                item.className = "flex items-center gap-4 p-4 hover:bg-[#1c1f26] border-b border-[#1e2129] text-sm";
-                item.innerHTML = `<i class="fa-solid ${file.folder ? 'fa-folder text-yellow-500' : 'fa-file text-blue-400'}"></i>
-                                  <span class="text-gray-300">${file.name}</span>`;
-                container.appendChild(item);
+            data.value.forEach(file => {
+                const row = document.createElement('div');
+                row.className = "flex items-center gap-4 p-4 hover:bg-[#1c1f26] text-sm";
+                row.innerHTML = `<i class="fa-solid ${file.folder ? 'fa-folder text-yellow-500' : 'fa-file text-blue-400'} w-5"></i>
+                                 <span class="text-gray-300">${file.name}</span>
+                                 <span class="ml-auto text-[10px] text-gray-600 uppercase">${file.size ? (file.size/1024/1024).toFixed(1) + 'MB' : 'Folder'}</span>`;
+                list.appendChild(row);
             });
         }
     </script>
