@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | v2.4 Ultimate</title>
+    <title>Zonix | v2.5 Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -113,33 +113,34 @@
             </section>
 
             <section id="view-users" class="hidden space-y-6">
-                <h2 class="text-3xl font-extrabold text-white">Sub-User Nodes</h2>
+                <h2 class="text-3xl font-extrabold text-white">Sub-User Management</h2>
                 <div class="glass-panel rounded-2xl overflow-hidden">
                     <table class="w-full text-left">
                         <thead class="bg-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            <tr><th class="p-5">User Address</th><th class="p-5">Password Link</th><th class="p-5">Privileges</th></tr>
+                            <tr><th class="p-5">Node User</th><th class="p-5">Security Key</th><th class="p-5">Permissions</th></tr>
                         </thead>
                         <tbody class="text-xs">
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-ROOT-454</td><td class="p-5 text-gray-500">zonix2026</td><td class="p-5 text-red-500 font-black">ADMIN</td></tr>
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-EDIT-772</td><td class="p-5 text-gray-500">smr2010000</td><td class="p-5 text-blue-500 font-black">EDITOR</td></tr>
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-GUEST-01</td><td class="p-5 text-gray-500">guest123</td><td class="p-5 text-gray-500 font-black">VIEWER</td></tr>
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-ROOT-01</td><td class="p-5 text-gray-500">zonix2026</td><td class="p-5 text-red-500 font-black">ADMIN</td></tr>
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-EDIT-02</td><td class="p-5 text-gray-500">smr2010000</td><td class="p-5 text-blue-500 font-black">EDITOR</td></tr>
+                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-VIEW-03</td><td class="p-5 text-gray-500">guest123</td><td class="p-5 text-gray-500 font-black">VIEWER</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
             <section id="view-profile" class="hidden">
-                <h2 class="text-3xl font-extrabold text-white mb-8">Edit Profile</h2>
+                <h2 class="text-3xl font-extrabold text-white mb-8">System Profile</h2>
                 <div class="glass-panel p-8 rounded-3xl max-w-lg">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Display Name</label>
                     <input type="text" id="edit-name" value="Mohamed Rashed" class="input-box mb-4">
-                    <button onclick="saveProfile()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold">Apply Changes</button>
+                    <button onclick="saveProfile()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold">Update System Identity</button>
                 </div>
             </section>
         </main>
     </div>
 
     <script>
-        // PERMISSION SETTINGS
+        // PERMISSION MAPPING
         const PERMS = {
             "zonix2026": { rank: "ADMIN", color: "text-red-500" },
             "smr2010000": { rank: "EDITOR", color: "text-blue-500" },
@@ -160,7 +161,7 @@
             }
         }
 
-        // SIDEBAR & TABS
+        // UI CONTROLS
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('minimized');
             document.getElementById('toggle-icon').classList.toggle('fa-chevron-left');
@@ -175,13 +176,12 @@
             if(name === 'network') initChart();
         }
 
-        // PROFILE
         function saveProfile() {
             document.getElementById('display-name').innerText = document.getElementById('edit-name').value;
-            alert("Settings Saved.");
+            alert("Identity Updated.");
         }
 
-        // MSAL (Fixing the Handshake)
+        // MSAL & HANDSHAKE FIX
         const client = new msal.PublicClientApplication({
             auth: { clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", authority: "https://login.microsoftonline.com/common" }
         });
@@ -190,12 +190,15 @@
             try {
                 const res = await client.loginPopup({ scopes: ["Files.Read.All", "Sites.Read.All"] });
                 fetchFiles(res.accessToken);
-            } catch (err) { alert("Check popups/handshake!"); }
+            } catch (err) { 
+                // Detailed alert to help user enable popups
+                alert("Handshake Error: Ensure pop-ups are ALLOWED in browser settings."); 
+            }
         });
 
         async function fetchFiles(token) {
             const list = document.getElementById('file-list');
-            list.innerHTML = '<div class="p-10 animate-pulse text-blue-500 font-bold">Syncing Nodes...</div>';
+            list.innerHTML = '<div class="p-10 animate-pulse text-blue-500 font-bold">Syncing Unified Nodes...</div>';
             try {
                 const req = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", { headers: { Authorization: `Bearer ${token}` } });
                 const data = await req.json();
@@ -207,11 +210,11 @@
                         ${canEdit}
                     </div>`;
                 });
-                list.innerHTML = html || '<p class="text-gray-600 italic p-10 text-center">Empty shared volume.</p>';
-            } catch (e) { list.innerHTML = '<p class="text-red-500">Handshake Failed.</p>'; }
+                list.innerHTML = html || '<p class="text-gray-600 italic p-10 text-center">No shared data detected.</p>';
+            } catch (e) { list.innerHTML = '<p class="text-red-500">Node Sync Failed.</p>'; }
         }
 
-        // CHART
+        // NETWORK CHART
         function initChart() {
             const ctx = document.getElementById('netChart').getContext('2d');
             new Chart(ctx, {
