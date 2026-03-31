@@ -3,35 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | Cloud Management</title>
+    <title>Zonix | Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        html, body { background-color: #0d0e12; color: #adb5bd; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; position: fixed; width: 100%; margin: 0; }
-        .sidebar { background-color: #15171e; border-right: 1px solid #1e2129; width: 260px; flex-shrink: 0; display: flex; flex-direction: column; }
-        .sidebar-header { background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid #1e2129; padding: 24px; }
-        .nav-item { color: #8a8d93; transition: all 0.2s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 12px; padding: 12px 24px; cursor: pointer; font-size: 14px; }
-        .nav-item:hover, .nav-item.active { background: #1c1f26; color: #fff; border-left-color: #3b82f6; }
-        .nav-label { font-size: 11px; font-weight: 700; color: #495057; text-transform: uppercase; letter-spacing: 1px; padding: 24px 24px 8px; }
-        .stat-card { background: #15171e; border: 1px solid #1e2129; border-radius: 8px; padding: 20px; }
-        .btn-action { padding: 8px 16px; border-radius: 4px; font-weight: 700; font-size: 11px; text-transform: uppercase; transition: 0.2s; }
-        .btn-start { background: #10b981; color: white; }
-        .btn-stop { background: #ef4444; color: white; }
-        .btn-restart { background: #3b82f6; color: white; }
-        #login-gate { background: #0d0e12; position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        input, select { background: #1c1f26; border: 1px solid #2d3139; border-radius: 4px; padding: 12px; color: white; outline: none; width: 100%; }
-        .view-section { display: none; height: 100%; overflow-y: auto; padding: 32px; }
-        .view-section.active { display: block; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { background-color: #0d0e12; color: #adb5bd; font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
+        
+        /* FORCE LOGIN VISIBILITY */
+        #login-gate { 
+            position: fixed; 
+            inset: 0; 
+            background: #0d0e12; 
+            z-index: 9999; 
+            display: flex !important; /* Forces it to show */
+            align-items: center; 
+            justify-content: center;
+        }
+
+        .login-card {
+            background: #15171e;
+            border: 1px solid #1e2129;
+            padding: 40px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        input { 
+            background: #1c1f26; 
+            border: 1px solid #3b82f6; 
+            border-radius: 8px; 
+            padding: 15px; 
+            color: white; 
+            width: 100%; 
+            margin-bottom: 20px; 
+            text-align: center;
+            font-size: 16px; /* Prevents iOS zoom-in on focus */
+        }
+
+        .sidebar { background: #15171e; width: 260px; border-right: 1px solid #1e2129; display: flex; flex-direction: column; }
+        .nav-item { padding: 12px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; border-left: 3px solid transparent; }
+        .nav-item.active { background: #1c1f26; color: white; border-left-color: #3b82f6; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="login-gate">
-        <div class="w-full max-w-sm px-6">
-            <div class="text-center mb-10">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4">Z</div>
-                <h1 class="text-white text-2xl font-semibold">Zonix Access</h1>
+        <div class="login-card">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold mb-6">Z</div>
+            <h2 class="text-white text-xl font-bold mb-2">Zonix Access</h2>
+            <p class="text-gray-500 text-[10px] uppercase tracking-widest mb-8">System: AZ-65EDD14C</p>
+            
+            <input type="password" id="pass-input" placeholder="Enter Access Key" autofocus>
+            
+            <button id="entry-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-lg font-bold uppercase text-xs tracking-widest transition-all">
+                Unlock Terminal
+            </button>
+            <p id="err" class="text-red-500 text-[10px] mt-4 opacity-0 font-bold uppercase">Access Denied</p>
+        </div>
+    </div>
 
+    <div id="dash" class="hidden flex h-full">
+        <aside class="sidebar">
+            <div class="p-6 border-b border-[#1e2129]">
+                <p class="text-[10px] text-blue-500 font-bold uppercase mb-1">Server Subuser</p>
+                <p class="text-white font-semibold">Mohamed Rashed</p>
+            </div>
+            <nav class="mt-4">
+                <div class="nav-item active"><i class="fa-solid fa-folder"></i> Files</div>
+                <div class="nav-item"><i class="fa-solid fa-rocket"></i> Startup</div>
+                <div class="nav-item"><i class="fa-solid fa-network-wired"></i> Network</div>
+                <div class="nav-item"><i class="fa-solid fa-users"></i> Users</div>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-10">
+            <div class="flex justify-between items-center mb-10">
+                <h1 class="text-2xl text-white font-bold">OneDrive Node</h1>
+                <button id="ms-login" class="bg-white text-black px-6 py-2 rounded font-bold text-xs uppercase">Initialize Node</button>
+            </div>
+            <div class="bg-[#15171e] border border-[#1e2129] rounded-xl h-64 flex items-center justify-center italic text-gray-600">
+                Awaiting handshake...
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 1. LOGIN SYSTEM
+        const entryBtn = document.getElementById('entry-btn');
+        const passInput = document.getElementById('pass-input');
+
+        function attemptLogin() {
+            const val = passInput.value.toLowerCase().trim();
+            // Using your established keys
+            if (val === "zonix2026" || val === "smr2010000") {
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('dash').classList.remove('hidden');
+            } else {
+                const err = document.getElementById('err');
+                err.style.opacity = '1';
+                setTimeout(() => err.style.opacity = '0', 2000);
+                passInput.value = "";
+            }
+        }
+
+        entryBtn.addEventListener('click', attemptLogin);
+        
+        // Allow "Enter" key to work on tablet keyboards
+        passInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+
+        // 2. MSAL (OneDrive)
+        const msalConfig = {
+            auth: {
+                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78",
+                authority: "https://login.microsoftonline.com/common",
+                redirectUri: window.location.href
+            }
+        };
+
+        const client = new msal.PublicClientApplication(msalConfig);
+
+        document.getElementById('ms-login').addEventListener('click', async () => {
+            try {
+                await client.loginPopup({
+                    scopes: ["user.read", "Files.Read.All"],
+                    prompt: "select_account"
+                });
+                alert("Node Linked Successfully");
+            } catch (err) {
+                alert("Check popup settings on your tablet.");
+            }
+        });
+    </script>
+</body>
+</html>
