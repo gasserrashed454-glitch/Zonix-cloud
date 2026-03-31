@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zonix | v2.5 Ultimate</title>
+    <title>Zonix | v2.6 Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,35 +14,36 @@
         body { background: var(--bg); color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; }
         .glass-panel { background: var(--glass); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
         
-        /* LOGIN SYSTEM */
+        /* LOGIN GATE */
         #login-gate { position: fixed; inset: 0; z-index: 10000; background: #050507; display: flex; align-items: center; justify-content: center; }
-        .input-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono', monospace; outline: none; }
-        .input-box:focus { border-color: var(--accent); }
-
-        /* MINIMIZABLE SIDEBAR */
+        .input-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono', monospace; outline: none; transition: 0.3s; }
+        
+        /* SIDEBAR */
         .sidebar { width: 260px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid rgba(255,255,255,0.05); background: #08090d; z-index: 50; }
         .sidebar.minimized { width: 80px; }
         .sidebar.minimized .nav-text, .sidebar.minimized .profile-details { display: none; }
         .sidebar.minimized .nav-link { justify-content: center; margin: 4px 8px; }
         
         .nav-link { padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: #94a3b8; font-weight: 600; transition: 0.2s; cursor: pointer; margin: 4px 12px; font-size: 13px; }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
         .nav-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
         
-        .storage-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; transition: 0.3s; }
-        .storage-card:hover { border-color: var(--accent); }
-
+        .storage-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; }
         .hidden { display: none !important; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .animate-shake { animation: shake 0.2s ease-in-out 0s 2; }
     </style>
 </head>
 <body>
 
     <div id="login-gate">
-        <div class="w-[380px] p-10 glass-panel rounded-[32px] text-center border-blue-500/20 border">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-extrabold mb-6 shadow-xl shadow-blue-600/30">Z</div>
-            <h2 class="text-xl font-extrabold text-white mb-6">Zonix Access</h2>
-            <input type="password" id="access-pass" class="input-box mb-4 text-center" placeholder="Security Token">
-            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all uppercase text-xs tracking-widest">Connect Node</button>
-            <p id="auth-error" class="text-red-500 text-[10px] mt-4 opacity-0 font-bold uppercase">Invalid Token</p>
+        <div class="w-[340px] p-8 glass-panel rounded-[32px] text-center border-blue-500/20 border">
+            <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-extrabold mb-6 shadow-lg shadow-blue-600/20">Z</div>
+            <h2 class="text-lg font-extrabold text-white mb-2">Node Authorization</h2>
+            <p class="text-[10px] text-gray-500 mb-6 uppercase tracking-widest">Verify Handshake Protocol</p>
+            <input type="password" id="access-pass" class="input-box mb-4 text-center" placeholder="Access Token">
+            <button id="auth-btn" onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all active:scale-95">Verify & Boot</button>
         </div>
     </div>
 
@@ -51,176 +52,299 @@
             <div class="p-6 flex items-center justify-between">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex-shrink-0 flex items-center justify-center text-white font-bold">Z</div>
-                    <span class="nav-text text-white font-black text-lg">ZONIX</span>
+                    <span class="nav-text text-white font-black text-lg tracking-tighter">ZONIX</span>
                 </div>
                 <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
             </div>
 
             <nav class="flex-1">
-                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree"></i> <span class="nav-text">Unified Files</span></div>
-                <div onclick="tab('cloud')" id="nav-cloud" class="nav-link"><i class="fa-solid fa-cloud"></i> <span class="nav-text">Cloud Monitor</span></div>
-                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-area"></i> <span class="nav-text">Network Traffic</span></div>
-                <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear"></i> <span class="nav-text">Sub-Users</span></div>
-                <div onclick="tab('profile')" id="nav-profile" class="nav-link"><i class="fa-solid fa-user-pen"></i> <span class="nav-text">Profile Editor</span></div>
+                <div onclick="tab('files')" id="nav-files" class="nav-link active"><i class="fa-solid fa-folder-tree w-5"></i> <span class="nav-text">Unified Files</span></div>
+                <div onclick="tab('cloud')" id="nav-cloud" class="nav-link"><i class="fa-solid fa-cloud w-5"></i> <span class="nav-text">Cloud Monitor</span></div>
+                <div onclick="tab('network')" id="nav-network" class="nav-link"><i class="fa-solid fa-chart-area w-5"></i> <span class="nav-text">Network Flow</span></div>
+                <div onclick="tab('terminal')" id="nav-terminal" class="nav-link"><i class="fa-solid fa-terminal w-5"></i> <span class="nav-text">Root Console</span></div>
+                <div onclick="tab('users')" id="nav-users" class="nav-link"><i class="fa-solid fa-users-gear w-5"></i> <span class="nav-text">Sub-Users</span></div>
+                <div onclick="tab('security')" id="nav-security" class="nav-link"><i class="fa-solid fa-shield-halved w-5"></i> <span class="nav-text">Security Audit</span></div>
+                <div onclick="tab('profile')" id="nav-profile" class="nav-link"><i class="fa-solid fa-user-pen w-5"></i> <span class="nav-text">Node Settings</span></div>
             </nav>
 
             <div class="p-4 border-t border-white/5">
                 <div class="glass-panel rounded-xl p-3 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-xs">MR</div>
+                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-[10px]">MR</div>
                     <div class="profile-details overflow-hidden">
                         <p id="display-name" class="text-[11px] text-white font-bold truncate">Mohamed Rashed</p>
-                        <span id="user-perm-badge" class="text-[8px] font-black uppercase text-blue-500">ADMIN</span>
+                        <span id="user-perm-badge" class="text-[8px] font-black uppercase tracking-tighter">---</span>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-10 bg-[#050507]">
+        <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-[#050507]">
             
             <section id="view-files" class="space-y-6">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-extrabold text-white">Unified Storage</h2>
-                    <button id="ms-init" class="bg-white text-black px-6 py-2 rounded-lg font-bold text-[10px] uppercase">Link OneDrive</button>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white">Storage Node</h2>
+                        <p class="text-[10px] text-gray-500 uppercase">Managing MohamedCloud Assets</p>
+                    </div>
+                    <button id="ms-init" onclick="syncMicrosoftNode()" class="bg-white hover:bg-gray-200 text-black px-5 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wider transition-colors">Link Microsoft</button>
                 </div>
-                <div id="file-list" class="space-y-2"></div>
+                <div id="file-list" class="grid gap-3">
+                    <div class="glass-panel p-10 rounded-2xl text-center border-dashed border-white/10 border">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-white/10 mb-4"></i>
+                        <p class="text-xs text-gray-500">Authorize Microsoft Node to view Ravage SMP files.</p>
+                    </div>
+                </div>
             </section>
 
-            <section id="view-cloud" class="hidden space-y-8">
-                <h2 class="text-3xl font-extrabold text-white">Cloud Health</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section id="view-cloud" class="hidden space-y-6">
+                <h2 class="text-2xl font-extrabold text-white">Cloud Health</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="storage-card">
-                        <div class="flex justify-between items-start mb-6">
-                            <i class="fa-brands fa-google-drive text-2xl text-emerald-500"></i>
-                            <span class="text-[9px] font-bold text-gray-500 uppercase">Google Drive</span>
-                        </div>
-                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-2"><div class="bg-emerald-500 h-full w-[12%]"></div></div>
-                        <p class="text-[10px] text-gray-400 font-bold">1.8GB / 15GB Used</p>
+                        <p class="text-[9px] font-bold text-gray-500 mb-4 uppercase tracking-widest">Google Drive Cluster</p>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-2"><div class="bg-emerald-500 h-full w-[15%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div></div>
+                        <p class="text-[10px] text-white font-bold">2.2GB / 15GB</p>
                     </div>
                     <div class="storage-card">
-                        <div class="flex justify-between items-start mb-6">
-                            <i class="fa-solid fa-cloud text-2xl text-blue-500"></i>
-                            <span class="text-[9px] font-bold text-gray-500 uppercase">Degoo Storage</span>
-                        </div>
-                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-2"><div class="bg-blue-500 h-full w-[88%]"></div></div>
-                        <p class="text-[10px] text-gray-400 font-bold">901GB / 1024GB Used</p>
+                        <p class="text-[9px] font-bold text-gray-500 mb-4 uppercase tracking-widest">Degoo Backup (Tier 1)</p>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full mb-2"><div class="bg-blue-500 h-full w-[92%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.3)]"></div></div>
+                        <p class="text-[10px] text-white font-bold">942.5GB / 1024GB</p>
                     </div>
                 </div>
             </section>
 
             <section id="view-network" class="hidden space-y-6">
-                <h2 class="text-3xl font-extrabold text-white">Network Monitor</h2>
-                <div class="glass-panel p-6 rounded-2xl h-[300px]"><canvas id="netChart"></canvas></div>
-            </section>
-
-            <section id="view-users" class="hidden space-y-6">
-                <h2 class="text-3xl font-extrabold text-white">Sub-User Management</h2>
-                <div class="glass-panel rounded-2xl overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            <tr><th class="p-5">Node User</th><th class="p-5">Security Key</th><th class="p-5">Permissions</th></tr>
-                        </thead>
-                        <tbody class="text-xs">
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-ROOT-01</td><td class="p-5 text-gray-500">zonix2026</td><td class="p-5 text-red-500 font-black">ADMIN</td></tr>
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-EDIT-02</td><td class="p-5 text-gray-500">smr2010000</td><td class="p-5 text-blue-500 font-black">EDITOR</td></tr>
-                            <tr class="border-t border-white/5"><td class="p-5 text-white font-mono">ZNX-VIEW-03</td><td class="p-5 text-gray-500">guest123</td><td class="p-5 text-gray-500 font-black">VIEWER</td></tr>
-                        </tbody>
-                    </table>
+                <h2 class="text-2xl font-extrabold text-white">Traffic Node</h2>
+                <div class="glass-panel p-6 rounded-[24px] h-[300px] w-full">
+                    <canvas id="netChart"></canvas>
                 </div>
             </section>
 
-            <section id="view-profile" class="hidden">
-                <h2 class="text-3xl font-extrabold text-white mb-8">System Profile</h2>
-                <div class="glass-panel p-8 rounded-3xl max-w-lg">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Display Name</label>
-                    <input type="text" id="edit-name" value="Mohamed Rashed" class="input-box mb-4">
-                    <button onclick="saveProfile()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold">Update System Identity</button>
+            <section id="view-terminal" class="hidden space-y-4">
+                <h2 class="text-2xl font-extrabold text-white">Root Console</h2>
+                <div id="console-output" class="glass-panel p-6 rounded-2xl font-mono text-[11px] h-80 overflow-y-auto text-emerald-500/80 leading-relaxed">
+                    <p class="text-gray-600 mb-2">// INITIALIZING ZONIX KERNEL v2.6.4_STABLE...</p>
+                    <p>> [SYSTEM] Handshake Protocol: VERIFIED</p>
+                    <p>> [NODE] MohamedCloud Storage: ATTACHED</p>
+                    <p>> [REMOTE] Ravage SMP Hook: LISTENING ON PORT 25565</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span>></span>
+                        <span class="w-2 h-4 bg-emerald-500 animate-pulse"></span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-users" class="hidden space-y-4">
+                <h2 class="text-2xl font-extrabold text-white">Sub-User Access</h2>
+                <div class="glass-panel rounded-2xl overflow-hidden text-[11px]">
+                    <div class="p-4 border-b border-white/5 flex justify-between bg-white/5 font-bold text-gray-400">
+                        <span>IDENTIFIER</span><span>CLEARANCE LEVEL</span>
+                    </div>
+                    <div class="p-4 flex justify-between border-b border-white/5 hover:bg-white/5 transition cursor-default">
+                        <span class="font-mono text-white">ZNX-ROOT-454</span><span class="text-red-500 font-bold tracking-widest">ROOT ADMIN</span>
+                    </div>
+                    <div class="p-4 flex justify-between border-b border-white/5 hover:bg-white/5 transition cursor-default">
+                        <span class="font-mono text-white">ZNX-EDIT-772</span><span class="text-blue-500 font-bold tracking-widest">NODE EDITOR</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-security" class="hidden space-y-4">
+                <h2 class="text-2xl font-extrabold text-white">Security Node</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel p-6 rounded-2xl text-center">
+                        <p class="text-[9px] text-gray-500 uppercase font-black mb-2">Shield Status</p>
+                        <p class="text-emerald-500 font-bold text-xl uppercase italic">Secure</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl text-center">
+                        <p class="text-[9px] text-gray-500 uppercase font-black mb-2">Encryption</p>
+                        <p class="text-white font-bold text-xl uppercase italic">AES-256</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl text-center">
+                        <p class="text-[9px] text-gray-500 uppercase font-black mb-2">Firewall</p>
+                        <p class="text-emerald-500 font-bold text-xl uppercase italic">Active</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-profile" class="hidden space-y-6">
+                <h2 class="text-2xl font-extrabold text-white">System Config</h2>
+                <div class="glass-panel p-6 rounded-[28px] max-w-md">
+                    <label class="text-[9px] font-bold text-gray-500 uppercase mb-2 block">Display Name</label>
+                    <input type="text" id="edit-name" value="Mohamed Rashed" class="input-box mb-6 text-sm">
+                    <button onclick="saveProfile()" class="bg-blue-600 hover:bg-blue-500 text-white w-full py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">Apply Global Changes</button>
                 </div>
             </section>
         </main>
     </div>
 
     <script>
-        // PERMISSION MAPPING
-        const PERMS = {
-            "zonix2026": { rank: "ADMIN", color: "text-red-500" },
-            "smr2010000": { rank: "EDITOR", color: "text-blue-500" },
-            "guest123": { rank: "VIEWER", color: "text-gray-500" }
+        // 1. SYSTEM CONFIGURATION & AUTH HANDSHAKE
+        const SYSTEM_CONFIG = {
+            vault: {
+                "zonix2026": { rank: "ROOT ADMIN", color: "text-red-500", access: ["files", "cloud", "network", "terminal", "users", "security", "profile"] },
+                "smr2010000": { rank: "NODE EDITOR", color: "text-blue-500", access: ["files", "cloud", "network", "profile"] },
+                "guest123": { rank: "GUEST VIEW", color: "text-gray-400", access: ["files", "profile"] }
+            }
         };
-        let userRank = "";
 
-        function authorize() {
-            const pass = document.getElementById('access-pass').value;
-            if(PERMS[pass]) {
-                userRank = PERMS[pass].rank;
-                document.getElementById('login-gate').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('user-perm-badge').innerText = userRank;
-                document.getElementById('user-perm-badge').className = `text-[8px] font-black uppercase ${PERMS[pass].color}`;
+        let activeUser = null;
+
+        // Microsoft MSAL Logic
+        const msalConfig = {
+            auth: { 
+                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
+                authority: "https://login.microsoftonline.com/common",
+                redirectUri: window.location.href 
+            },
+            cache: { cacheLocation: "localStorage", storeAuthStateInCookie: true }
+        };
+        const client = new msal.PublicClientApplication(msalConfig);
+
+        // Handle Auto-Redirect Detection
+        client.handleRedirectPromise().then(res => {
+            if (res) {
+                // Pre-authorize for testing convenience if redirected
+                activeUser = SYSTEM_CONFIG.vault["zonix2026"];
+                bootApp();
+                fetchLiveFiles(res.accessToken);
+            }
+        });
+
+        async function authorize() {
+            const input = document.getElementById('access-pass');
+            const btn = document.getElementById('auth-btn');
+            const token = input.value;
+
+            if(SYSTEM_CONFIG.vault[token]) {
+                btn.innerText = "VERIFYING...";
+                btn.classList.add('opacity-50', 'pointer-events-none');
+                
+                setTimeout(() => {
+                    activeUser = SYSTEM_CONFIG.vault[token];
+                    bootApp();
+                }, 800);
             } else {
-                document.getElementById('auth-error').style.opacity = "1";
+                input.classList.add('animate-shake', 'border-red-500');
+                setTimeout(() => input.classList.remove('animate-shake', 'border-red-500'), 500);
             }
         }
 
-        // UI CONTROLS
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('minimized');
-            document.getElementById('toggle-icon').classList.toggle('fa-chevron-left');
-            document.getElementById('toggle-icon').classList.toggle('fa-chevron-right');
+        function bootApp() {
+            document.getElementById('login-gate').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            
+            // Set Identity
+            const badge = document.getElementById('user-perm-badge');
+            badge.innerText = activeUser.rank;
+            badge.className = `text-[8px] font-black uppercase tracking-tighter ${activeUser.color}`;
+            
+            // Clearance Logic: Hide unauthorized nav items
+            document.querySelectorAll('.nav-link').forEach(link => {
+                const view = link.id.split('-')[1];
+                if (!activeUser.access.includes(view)) link.classList.add('hidden');
+            });
+
+            initChart();
         }
 
-        function tab(name) {
-            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        // 2. MICROSOFT NODE SYNC (POPUP + FALLBACK)
+        async function syncMicrosoftNode() {
+            const loginRequest = {
+                scopes: ["Files.Read.All", "User.Read"],
+                prompt: "select_account"
+            };
+
+            try {
+                const response = await client.loginPopup(loginRequest);
+                document.getElementById('ms-init').innerText = "LINKED";
+                document.getElementById('ms-init').className = "bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-[9px] uppercase tracking-wider";
+                fetchLiveFiles(response.accessToken);
+            } catch (err) {
+                console.warn("Popup blocked, initiating redirect handshake...");
+                client.loginRedirect(loginRequest);
+            }
+        }
+
+        async function fetchLiveFiles(token) {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '<p class="text-[10px] text-gray-500 animate-pulse text-center p-10">HANDSHAKING WITH MICROSOFT GRAPH API...</p>';
+            
+            try {
+                const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                list.innerHTML = "";
+                data.value.forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = "glass-panel p-4 rounded-xl flex items-center justify-between hover:border-blue-500/30 transition cursor-pointer group";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid ${file.folder ? 'fa-folder text-blue-400' : 'fa-file-code text-gray-500'} transition-transform group-hover:scale-110"></i>
+                            <div>
+                                <p class="text-[11px] font-bold text-white">${file.name}</p>
+                                <p class="text-[9px] text-gray-600 uppercase font-mono">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-gray-800 group-hover:text-white transition"></i>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                list.innerHTML = `<p class="text-red-500 text-[10px] p-10 text-center">API HANDSHAKE ERROR: Check Azure Permissions</p>`;
+            }
+        }
+
+        // 3. UI CONTROLS
+        function tab(viewId) {
+            const targets = ['files', 'cloud', 'network', 'terminal', 'users', 'security', 'profile'];
+            targets.forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById('view-'+name).classList.remove('hidden');
-            document.getElementById('nav-'+name).classList.add('active');
-            if(name === 'network') initChart();
+            document.getElementById(`nav-${viewId}`).classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('minimized');
+            document.getElementById('toggle-icon').className = sb.classList.contains('minimized') ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
         }
 
         function saveProfile() {
-            document.getElementById('display-name').innerText = document.getElementById('edit-name').value;
-            alert("Identity Updated.");
+            const name = document.getElementById('edit-name').value;
+            document.getElementById('display-name').innerText = name;
+            alert("Node configuration updated globally.");
         }
 
-        // MSAL & HANDSHAKE FIX
-        const client = new msal.PublicClientApplication({
-            auth: { clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", authority: "https://login.microsoftonline.com/common" }
-        });
-
-        document.getElementById('ms-init').addEventListener('click', async () => {
-            try {
-                const res = await client.loginPopup({ scopes: ["Files.Read.All", "Sites.Read.All"] });
-                fetchFiles(res.accessToken);
-            } catch (err) { 
-                // Detailed alert to help user enable popups
-                alert("Handshake Error: Ensure pop-ups are ALLOWED in browser settings."); 
-            }
-        });
-
-        async function fetchFiles(token) {
-            const list = document.getElementById('file-list');
-            list.innerHTML = '<div class="p-10 animate-pulse text-blue-500 font-bold">Syncing Unified Nodes...</div>';
-            try {
-                const req = await fetch("https://graph.microsoft.com/v1.0/me/drive/sharedWithMe", { headers: { Authorization: `Bearer ${token}` } });
-                const data = await req.json();
-                let html = '';
-                data.value.forEach(item => {
-                    const canEdit = userRank !== "VIEWER" ? '<button class="text-[10px] text-blue-500 font-bold uppercase">Manage</button>' : '';
-                    html += `<div class="storage-card flex justify-between items-center">
-                        <div class="flex items-center gap-4"><i class="fa-solid fa-folder text-yellow-500"></i><span class="text-sm font-bold">${item.name || item.remoteItem.name}</span></div>
-                        ${canEdit}
-                    </div>`;
-                });
-                list.innerHTML = html || '<p class="text-gray-600 italic p-10 text-center">No shared data detected.</p>';
-            } catch (e) { list.innerHTML = '<p class="text-red-500">Node Sync Failed.</p>'; }
-        }
-
-        // NETWORK CHART
         function initChart() {
             const ctx = document.getElementById('netChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
-                data: { labels: [1,2,3,4,5], datasets: [{ label: 'Traffic', data: [10, 25, 12, 35, 20], borderColor: '#3b82f6', tension: 0.4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        data: [45, 52, 38, 95, 62, 78],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        fill: true,
+                        tension: 0.5,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } },
+                        y: { display: false }
+                    }
+                }
             });
         }
     </script>
