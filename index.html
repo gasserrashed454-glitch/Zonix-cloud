@@ -9,35 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-        
-        /* Fixed Layout - No Zooming */
-        html, body { 
-            background-color: #0d0e12; 
-            color: #adb5bd; 
-            font-family: 'Inter', sans-serif; 
-            overflow: hidden; 
-            height: 100vh; 
-            position: fixed; 
-            width: 100%; 
-            margin: 0;
-        }
-
-        /* CloudExa Sidebar Theme */
+        html, body { background-color: #0d0e12; color: #adb5bd; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; position: fixed; width: 100%; margin: 0; }
         .sidebar { background-color: #15171e; border-right: 1px solid #1e2129; width: 260px; flex-shrink: 0; display: flex; flex-direction: column; }
         .sidebar-header { background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid #1e2129; padding: 24px; }
         .nav-item { color: #8a8d93; transition: all 0.2s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 12px; padding: 12px 24px; cursor: pointer; }
         .nav-item:hover, .nav-item.active { background: #1c1f26; color: #fff; border-left-color: #3b82f6; }
         .nav-label { font-size: 11px; font-weight: 700; color: #495057; text-transform: uppercase; letter-spacing: 1px; padding: 24px 24px 8px; }
-
-        /* Dashboard Elements */
         .stat-card { background: #15171e; border: 1px solid #1e2129; border-radius: 8px; padding: 24px; }
         .btn-primary { background: #3b82f6; color: white; border-radius: 4px; font-weight: 600; padding: 12px 24px; transition: 0.2s; cursor: pointer; border: none; width: 100%; }
-        .btn-primary:active { background: #2563eb; transform: scale(0.98); }
-        
-        /* Security Gate Overlay */
         #login-gate { background: #0d0e12; position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; }
         input[type="password"] { background: #15171e; border: 1px solid #1e2129; border-radius: 4px; padding: 16px; color: white; width: 100%; margin-bottom: 16px; outline: none; }
-        input[type="password"]:focus { border-color: #3b82f6; }
     </style>
 </head>
 <body>
@@ -46,13 +27,10 @@
         <div class="w-full max-w-sm px-6">
             <div class="text-center mb-10">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-xl shadow-blue-500/20">Z</div>
-                <h1 class="text-white text-2xl font-semibold tracking-tight">Authentication Required</h1>
-                <p class="text-gray-500 text-sm mt-2">Enter security key to access node</p>
+                <h1 class="text-white text-2xl font-semibold tracking-tight">Security Terminal</h1>
             </div>
-            <input type="password" id="ceo-pass" placeholder="••••••••" autocomplete="current-password">
-            <button id="unlock-btn" onclick="checkAccess()" ontouchstart="checkAccess()" class="btn-primary uppercase text-xs tracking-widest font-black">
-                Unlock Thermal
-            </button>
+            <input type="password" id="ceo-pass" placeholder="Enter Key" autocomplete="off">
+            <button id="final-unlock-btn" class="btn-primary uppercase text-xs tracking-widest font-black">Unlock Thermal</button>
             <p id="error-text" class="text-red-500 text-[10px] text-center mt-4 opacity-0 font-bold uppercase tracking-widest">Access Denied</p>
         </div>
     </div>
@@ -80,15 +58,13 @@
                     <h2 class="text-2xl text-white font-semibold">OneDrive Node</h2>
                     <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Status: <span id="status-text" class="text-red-500">Offline</span></p>
                 </div>
-                <button id="connectBtn" onclick="connectOneDrive()" ontouchstart="connectOneDrive()" class="btn-primary !w-auto">
-                    INITIALIZE NODE
-                </button>
+                <button id="connectBtn" class="btn-primary !w-auto">INITIALIZE NODE</button>
             </header>
 
             <div class="p-8 space-y-8 overflow-y-auto">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="stat-card">
-                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Memory</p>
+                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Memory Usage</p>
                         <p class="text-xl text-white">0.00 <span class="text-gray-600 text-sm">MB / 100 GB</span></p>
                     </div>
                     <div class="stat-card">
@@ -100,11 +76,10 @@
                         <p class="text-sm font-mono text-blue-400">AZ-65EDD14C</p>
                     </div>
                 </div>
-
-                <div class="bg-[#15171e] border border-[#1e2129] rounded-lg min-h-[400px]">
-                    <div id="fileList" class="flex flex-col items-center justify-center h-[400px] text-gray-600">
+                <div class="bg-[#15171e] border border-[#1e2129] rounded-lg min-h-[400px]" id="fileList">
+                    <div class="flex flex-col items-center justify-center h-[400px] text-gray-600">
                         <i class="fa-solid fa-terminal text-4xl mb-4 opacity-10"></i>
-                        <p class="text-xs uppercase tracking-widest font-bold">Handshake Required</p>
+                        <p class="text-xs uppercase tracking-widest font-bold">Awaiting handshake...</p>
                     </div>
                 </div>
             </div>
@@ -112,77 +87,54 @@
     </div>
 
     <script>
-        // Use an array to store allowed keys
-        const keys = ["zonix2026", "smr2010000"];
-
-        function checkAccess() {
-            const input = document.getElementById('ceo-pass').value.toLowerCase().trim();
-            const gate = document.getElementById('login-gate');
-            const dash = document.getElementById('main-dashboard');
-            const error = document.getElementById('error-text');
-
-            if (keys.includes(input)) {
-                gate.style.opacity = '0';
-                setTimeout(() => {
-                    gate.classList.add('hidden');
-                    dash.classList.remove('hidden');
-                }, 400);
+        // 1. Logic to unlock
+        document.getElementById('final-unlock-btn').addEventListener('click', function() {
+            const val = document.getElementById('ceo-pass').value.toLowerCase().trim();
+            if (["zonix2026", "smr2010000"].includes(val)) {
+                document.getElementById('login-gate').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
             } else {
-                error.style.opacity = '1';
-                setTimeout(() => { error.style.opacity = '0'; }, 2000);
+                const err = document.getElementById('error-text');
+                err.style.opacity = '1';
+                setTimeout(() => err.style.opacity = '0', 2000);
             }
-        }
+        });
 
-        // MSAL Configuration with your specific Client ID
+        // 2. Azure Setup
         const msalConfig = {
             auth: {
-                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78", 
+                clientId: "65edd14c-cf8a-4e75-8b19-1b185fc86b78",
                 authority: "https://login.microsoftonline.com/common",
                 redirectUri: "https://gasserrashed454-glitch.github.io/Zonix-cloud/"
-            },
-            cache: { cacheLocation: "localStorage", storeAuthStateInCookie: true }
+            }
         };
 
         const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-        async function connectOneDrive() {
+        document.getElementById('connectBtn').addEventListener('click', async () => {
             try {
-                const loginResponse = await msalInstance.loginPopup({
+                const res = await msalInstance.loginPopup({
                     scopes: ["user.read", "Files.Read.All"],
                     prompt: "select_account"
                 });
-                
                 document.getElementById('status-text').innerText = "ONLINE";
                 document.getElementById('status-text').className = "text-green-500";
                 document.getElementById('sync-val').innerText = "ACTIVE";
-                document.getElementById('connectBtn').innerText = "NODE LINKED";
-                document.getElementById('connectBtn').style.opacity = "0.5";
                 
-                fetchFiles(loginResponse.accessToken);
-            } catch (err) {
-                console.error(err);
-                alert("Auth Failure: Ensure Azure 'Implicit Grant' (Access & ID tokens) is enabled.");
-            }
-        }
-
-        async function fetchFiles(token) {
-            const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await res.json();
-            const list = document.getElementById('fileList');
-            list.innerHTML = '';
-            list.className = "divide-y divide-[#1e2129]";
-            
-            data.value.forEach(file => {
-                const row = document.createElement('div');
-                row.className = "flex items-center gap-4 p-4 hover:bg-[#1c1f26] text-sm";
-                row.innerHTML = `<i class="fa-solid ${file.folder ? 'fa-folder text-yellow-500' : 'fa-file text-blue-400'} w-5"></i>
-                                 <span class="text-gray-300">${file.name}</span>
-                                 <span class="ml-auto text-[10px] text-gray-600 uppercase">${file.size ? (file.size/1024/1024).toFixed(1) + 'MB' : 'Folder'}</span>`;
-                list.appendChild(row);
-            });
-        }
+                const fileRes = await fetch("https://graph.microsoft.com/v1.0/me/drive/root/children", {
+                    headers: { Authorization: `Bearer ${res.accessToken}` }
+                });
+                const data = await fileRes.json();
+                const list = document.getElementById('fileList');
+                list.innerHTML = '';
+                data.value.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center gap-4 p-4 hover:bg-[#1c1f26] text-sm border-b border-[#1e2129]";
+                    row.innerHTML = `<i class="fa-solid ${f.folder ? 'fa-folder text-yellow-500' : 'fa-file text-blue-400'}"></i> <span class="text-gray-300">${f.name}</span>`;
+                    list.appendChild(row);
+                });
+            } catch (err) { alert("Auth Failure. Check Azure settings."); }
+        });
     </script>
 </body>
 </html>
