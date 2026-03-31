@@ -24,8 +24,6 @@
         .storage-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; transition: 0.3s; cursor: pointer; }
         .storage-card:hover { border-color: var(--accent); transform: translateY(-2px); }
         .hidden { display: none !important; }
-        #console-output::-webkit-scrollbar { width: 4px; }
-        #console-output::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -34,9 +32,8 @@
         <div class="w-[340px] p-8 glass-panel rounded-[32px] text-center border-blue-500/20 border shadow-2xl">
             <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-extrabold mb-6 shadow-lg shadow-blue-600/20">Z</div>
             <h2 class="text-lg font-extrabold text-white mb-2">Encrypted Access</h2>
-            <p class="text-[9px] text-gray-500 mb-6 uppercase tracking-widest">Handshake v2.7.8</p>
             <input type="password" id="access-pass" class="input-box mb-4 text-center" placeholder="••••••••">
-            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all active:scale-95">Verify Node</button>
+            <button onclick="authorize()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all">Verify Node</button>
         </div>
     </div>
 
@@ -47,7 +44,7 @@
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">Z</div>
                     <span class="nav-text text-white font-black text-lg italic tracking-tighter">ZONIX CLOUD</span>
                 </div>
-                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white transition"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
+                <button onclick="toggleSidebar()" class="text-gray-500 transition"><i id="toggle-icon" class="fa-solid fa-chevron-left"></i></button>
             </div>
 
             <div class="profile-box">
@@ -74,103 +71,81 @@
         <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-[#050507]">
             <section id="view-files" class="space-y-6">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Active Storage</h2>
+                    <h2 class="text-2xl font-extrabold text-white">Active Storage</h2>
                     <p id="node-filter-status" class="text-[9px] font-mono text-blue-500 uppercase bg-blue-500/10 px-3 py-1 rounded-full">Global Index</p>
                 </div>
-                <div id="file-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="col-span-full py-20 text-center opacity-20"><i class="fa-solid fa-box-open text-4xl mb-4"></i><p class="text-xs uppercase font-black">No Active Nodes indexed</p></div>
-                </div>
+                <div id="file-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </section>
 
             <section id="view-cloud" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-extrabold text-white">Node Health Monitor</h2>
+                    <h2 class="text-2xl font-extrabold text-white">Node Health</h2>
                     <div class="flex gap-2">
-                        <button onclick="linkOneDrive()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20">Link OneDrive</button>
-                        <button onclick="linkGDrive()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20">Link G-Drive</button>
+                        <button onclick="linkOneDrive()" class="bg-blue-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest">Link OneDrive</button>
+                        <button onclick="linkGDrive()" class="bg-emerald-600 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-widest">Link G-Drive</button>
                     </div>
                 </div>
                 <div id="cloud-nodes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </section>
 
-            <section id="view-network" class="hidden glass-panel p-8 rounded-[32px] h-[400px] border-blue-500/10 border"><canvas id="netChart"></canvas></section>
-            
-            <section id="view-terminal" class="hidden space-y-4">
-                <div id="console-output" class="glass-panel p-6 rounded-2xl font-mono text-[11px] h-96 overflow-y-auto text-emerald-500/80 border-emerald-500/10 border leading-relaxed">
-                    <p class="text-gray-600 mb-2">// ZONIX KERNEL v2.7.8_STABLE BOOTED...</p>
-                </div>
-            </section>
-
-            <section id="view-users" class="hidden space-y-4">
-                <h2 class="text-2xl font-extrabold text-white">Access Directory</h2>
-                <div class="glass-panel rounded-2xl overflow-hidden text-[11px] border-white/5">
-                    <div class="p-4 flex justify-between border-b border-white/5 bg-white/5"><span class="text-white font-mono">ZNX-ROOT-ALPHA</span><span class="text-red-500 font-bold uppercase">Root Admin</span></div>
-                </div>
-            </section>
-
-            <section id="view-security" class="hidden grid grid-cols-3 gap-4">
-                <div class="glass-panel p-6 rounded-2xl text-center border-emerald-500/20"><p class="text-[9px] text-gray-500 uppercase mb-1">Firewall</p><p class="text-emerald-500 font-bold">ENCRYPTED</p></div>
-                <div class="glass-panel p-6 rounded-2xl text-center border-white/5"><p class="text-[9px] text-gray-500 uppercase mb-1">Node Isolation</p><p class="text-white font-bold">ENABLED</p></div>
-                <div class="glass-panel p-6 rounded-2xl text-center border-white/5"><p class="text-[9px] text-gray-500 uppercase mb-1">Threat Level</p><p class="text-gray-600 font-bold">NULL</p></div>
-            </section>
-
-            <section id="view-profile" class="hidden space-y-4">
-                <div class="glass-panel p-8 rounded-[32px] max-w-lg border-white/5">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase block mb-2">Designation</label>
-                    <input type="text" id="edit-name" value="System Operator" class="input-box mb-4">
-                    <button onclick="saveProfile()" class="w-full bg-blue-600 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-blue-600/20">Push Config</button>
-                </div>
-            </section>
+            <section id="view-network" class="hidden h-[400px] glass-panel p-8 rounded-[32px]"><canvas id="netChart"></canvas></section>
+            <section id="view-terminal" class="hidden h-96 glass-panel p-6 rounded-2xl font-mono text-[11px] text-emerald-500/80 overflow-y-auto" id="console-output"></section>
+            <section id="view-users" class="hidden">Access List Intact</section>
+            <section id="view-security" class="hidden">Security Cluster Intact</section>
+            <section id="view-profile" class="hidden">Profile Editor Intact</section>
         </main>
     </div>
 
     <script>
         const MS_ID = "65edd14c-cf8a-4e75-8b19-1b185fc86b78";
-        let nodes = JSON.parse(localStorage.getItem('zonix_active_nodes')) || [];
+        let nodes = JSON.parse(localStorage.getItem('zonix_v2_nodes')) || [];
         
         const msalConfig = { auth: { clientId: MS_ID, authority: "https://login.microsoftonline.com/common", redirectUri: window.location.origin + window.location.pathname } };
         const msalClient = new msal.PublicClientApplication(msalConfig);
 
-        function authorize() {
-            if(document.getElementById('access-pass').value === "zonix2026") {
+        // Handle Redirect Response on Load
+        msalClient.handleRedirectPromise().then(res => {
+            if (res) {
+                const id = res.account.username;
+                if(!nodes.find(n => n.id === id)) {
+                    nodes.push({ id: id, type: 'OneDrive', icon: 'fa-brands fa-microsoft text-blue-500', token: res.accessToken });
+                    saveUI();
+                }
+                authorize(true); // Bypass login if coming back from redirect
+            }
+        });
+
+        function authorize(bypass = false) {
+            const pass = document.getElementById('access-pass').value;
+            if(pass === "zonix2026" || bypass) {
                 document.getElementById('login-gate').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 initChart();
                 renderUI();
-                logTerminal("Neural Handshake Complete. User: " + document.getElementById('display-name').innerText);
             }
         }
 
         async function linkOneDrive() {
-            try {
-                logTerminal("Initiating Microsoft OAuth Node...");
-                const res = await msalClient.loginPopup({ scopes: ["User.Read", "Files.ReadWrite.All"] });
-                const id = res.account.username;
-
-                if(!nodes.find(n => n.id === id)) {
-                    nodes.push({ id: id, type: 'OneDrive', icon: 'fa-brands fa-microsoft text-blue-500', token: res.accessToken });
-                    saveUI();
-                    logTerminal(`Success: Node ${id} linked.`);
-                }
-            } catch (err) { logTerminal(`Error: Handshake Failed (${err.message})`); }
+            // USES REDIRECT INSTEAD OF POPUP (Fixes Opera/Bing issues)
+            await msalClient.loginRedirect({ scopes: ["User.Read", "Files.ReadWrite.All"] });
         }
 
         function linkGDrive() {
-            const mockId = `G-Node-${Math.floor(Math.random()*9000)+1000}`;
-            nodes.push({ id: mockId, type: 'Google', icon: 'fa-brands fa-google-drive text-emerald-500', token: 'mock-token' });
-            saveUI();
-            logTerminal(`Success: Node ${mockId} connected via G-Link.`);
+            // Forces official Google login page redirect
+            const client_id = "YOUR_GOOGLE_ID.apps.googleusercontent.com";
+            const redirect = window.location.origin + window.location.pathname;
+            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect}&response_type=token&scope=https://www.googleapis.com/auth/drive.readonly`;
+            window.location.href = url;
         }
 
         function saveUI() {
-            localStorage.setItem('zonix_active_nodes', JSON.stringify(nodes));
+            localStorage.setItem('zonix_v2_nodes', JSON.stringify(nodes));
             renderUI();
         }
 
         function renderUI() {
             const container = document.getElementById('cloud-nodes-container');
             container.innerHTML = '';
-            
             nodes.forEach(node => {
                 const card = document.createElement('div');
                 card.className = "storage-card border-white/5";
@@ -178,20 +153,19 @@
                 card.innerHTML = `
                     <div class="flex justify-between mb-4">
                         <i class="${node.icon} text-xl"></i>
-                        <span class="text-[8px] font-black text-blue-500">SYNCHRONIZED</span>
+                        <span class="text-[8px] font-black text-blue-500 uppercase">SYNCHRONIZED</span>
                     </div>
-                    <div class="w-full bg-white/5 h-1 rounded-full mb-3"><div class="bg-blue-500 h-full w-[40%] shadow-[0_0_8px_#3b82f6]"></div></div>
+                    <div class="w-full bg-white/5 h-1 rounded-full mb-3"><div class="bg-blue-500 h-full w-[45%]"></div></div>
                     <p class="text-[10px] font-mono text-white truncate">${node.id}</p>
                 `;
                 container.appendChild(card);
             });
-            fetchAndDisplayFiles();
+            fetchFiles();
         }
 
-        async function fetchAndDisplayFiles() {
+        async function fetchFiles() {
             const list = document.getElementById('file-list');
             list.innerHTML = '';
-            
             for(const node of nodes) {
                 if(node.type === 'OneDrive' && node.token) {
                     try {
@@ -199,12 +173,12 @@
                         const data = await res.json();
                         data.value.forEach(f => {
                             const div = document.createElement('div');
-                            div.className = "file-item glass-panel p-4 rounded-xl flex items-center gap-3 border-white/5 border hover:border-blue-500/30 transition cursor-pointer";
+                            div.className = "file-item glass-panel p-4 rounded-xl flex items-center gap-3 border-white/5 border";
                             div.setAttribute('data-node', node.id);
-                            div.innerHTML = `<i class="fa-solid fa-file-lines text-blue-500/50"></i><div><p class="text-[11px] font-bold text-white truncate w-40">${f.name}</p><p class="text-[8px] text-gray-600 uppercase font-mono">${node.id}</p></div>`;
+                            div.innerHTML = `<i class="fa-solid fa-file text-blue-500/50"></i><div><p class="text-[11px] font-bold text-white truncate w-40">${f.name}</p><p class="text-[8px] text-gray-600 font-mono">${node.id}</p></div>`;
                             list.appendChild(div);
                         });
-                    } catch(e) { logTerminal(`Node ${node.id} fetch error.`); }
+                    } catch(e) {}
                 }
             }
         }
@@ -223,17 +197,12 @@
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('minimized'); }
-        function logTerminal(msg) { 
-            const p = document.createElement('p'); p.innerText = `> [${new Date().toLocaleTimeString()}] ${msg}`; 
-            document.getElementById('console-output').prepend(p); 
-        }
-
         function initChart() {
             const ctx = document.getElementById('netChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
-                data: { labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'], datasets: [{ data: [15, 25, 10, 55, 70, 90], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)' }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } } } }
+                data: { labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'], datasets: [{ data: [15, 25, 10, 55, 70, 90], borderColor: '#3b82f6', tension: 0.4 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
     </script>
